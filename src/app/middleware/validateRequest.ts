@@ -13,6 +13,9 @@ const validateRequest =
       })
       return next()
     } catch (error) {
+      //remove files if validation fails
+      // removeFiles(req.files)
+
       next(error)
     }
   }

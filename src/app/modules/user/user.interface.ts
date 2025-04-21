@@ -14,10 +14,12 @@ type IAuthentication = {
 
 export type IUser = {
   _id: Types.ObjectId
-  name?: string
+  name: string
+  industry?: string
   email?: string
+  serviceTypes: string
   profile?: string
-  phone?: string
+  phone: string
   status: string
   verified: boolean
   address?: string
