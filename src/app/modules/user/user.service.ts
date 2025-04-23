@@ -109,4 +109,15 @@ const createAdmin = async (): Promise<Partial<IUser> | null> => {
   return result[0]
 }
 
-export const UserServices = { createUser, updateProfile, createAdmin }
+const getUserProfile = async (user: JwtPayload): Promise<IUser | null> => {
+  const result = await User.findById(user.authId)
+
+  return result
+}
+
+export const UserServices = {
+  createUser,
+  updateProfile,
+  createAdmin,
+  getUserProfile,
+}

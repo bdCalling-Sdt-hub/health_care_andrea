@@ -7,7 +7,7 @@ import { StatusCodes } from 'http-status-codes'
 const createService = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { image, ...serviceData } = req.body
-    if (image.length > 0) {
+    if (image?.length > 0) {
       serviceData.image = image[0]
     }
     const result = await ServiceServices.createService(serviceData)
@@ -24,7 +24,8 @@ const updateService = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params
     const { image, ...serviceData } = req.body
-    if (image.length > 0) {
+    console.log(req.body)
+    if (image?.length > 0) {
       serviceData.image = image[0]
     }
     const result = await ServiceServices.updateService(id, serviceData)

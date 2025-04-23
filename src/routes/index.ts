@@ -3,6 +3,8 @@ import { AuthRoutes } from '../app/modules/auth/auth.route'
 import express, { Router } from 'express'
 import { ServiceRoutes } from '../app/modules/service/service.route'
 import { WayRoutes } from '../app/modules/way/way.route'
+import { TabsRoutes } from '../app/modules/tabs/tabs.route'
+import { InsightsRoutes } from '../app/modules/insights/insights.route'
 
 const router = express.Router()
 
@@ -11,6 +13,9 @@ const apiRoutes: { path: string; route: Router }[] = [
   { path: '/auth', route: AuthRoutes },
   { path: '/service', route: ServiceRoutes },
   { path: '/way', route: WayRoutes },
+  { path: '/tabs', route: TabsRoutes },
+
+  { path: '/insights', route: InsightsRoutes },
 ]
 
 apiRoutes.forEach(route => {

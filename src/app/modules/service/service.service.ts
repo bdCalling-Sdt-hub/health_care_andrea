@@ -7,7 +7,7 @@ import fs from 'fs'
 import { removeUploadedFiles } from '../../../utils/deleteUploadedFile'
 
 const createService = async (payload: IService): Promise<IService> => {
-  const result = false
+  const result = Service.create(payload)
   if (!result) {
     removeUploadedFiles(payload.image)
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create service')

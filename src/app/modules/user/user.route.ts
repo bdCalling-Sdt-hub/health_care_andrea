@@ -29,5 +29,14 @@ router.patch(
   validateRequest(UserValidations.updateUserZodSchema),
   UserController.updateProfile,
 )
-
+router.get(
+  '/profile',
+  auth(
+    USER_ROLES.CUSTOMER,
+    USER_ROLES.ADMIN,
+    USER_ROLES.USER,
+    USER_ROLES.GUEST,
+  ),
+  UserController.getProfile,
+)
 export const UserRoutes = router
