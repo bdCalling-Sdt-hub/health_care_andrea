@@ -10,8 +10,6 @@ const handleLoginLogic = async (payload: ILoginData, isUserExist: any) => {
 
   const { restrictionLeftAt, wrongLoginAttempts } = authentication
 
-  console.log(verified, status, restrictionLeftAt, wrongLoginAttempts)
-
   if (!verified) {
     throw new ApiError(
       StatusCodes.UNAUTHORIZED,

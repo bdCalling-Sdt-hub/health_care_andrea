@@ -55,7 +55,7 @@ const verifyAccount = catchAsync(async (req: Request, res: Response) => {
 })
 
 const getRefreshToken = catchAsync(async (req: Request, res: Response) => {
-  const { refreshToken } = req.cookies
+  const { refreshToken } = req.body
   const result = await CustomAuthServices.getRefreshToken(refreshToken)
   sendResponse(res, {
     statusCode: StatusCodes.OK,

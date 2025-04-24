@@ -15,6 +15,7 @@ const updateInsights = async (
   id: string,
   payload: Partial<IInsights>,
 ): Promise<IInsights | null> => {
+  console.log(payload)
   const result = await Insights.findByIdAndUpdate(
     new Types.ObjectId(id),
     { $set: payload },
@@ -59,12 +60,12 @@ const deleteInsights = async (id: string): Promise<IInsights | null> => {
   try {
     session.startTransaction()
     const result = await Insights.findByIdAndDelete(new Types.ObjectId(id))
-    if (!result)
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to delete insights')
 
-    const sectionIds = new Set(
-      result.sections.map(section => section.toString()),
-    )
+    if (!result) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to delete insights')
+    }
+
+    const sectionIds = result.sections.map(section => section.toString())
 
     await Promise.all([
       Section.deleteMany({ _id: { $in: result.sections } }),
@@ -123,6 +124,7 @@ const updateInsightSection = async (
   id: string,
   payload: Partial<IInsights>,
 ): Promise<ISections | null> => {
+  console.log(payload, id)
   const result = await Section.findByIdAndUpdate(
     new Types.ObjectId(id),
     { $set: payload },
@@ -140,6 +142,11 @@ const getAllSectionsByInsightsId = async (
   if (!insightExist)
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Insight not found')
   const result = await Section.find({ _id: { $in: insightExist.sections } })
+    .populate({
+      path: 'insight',
+      select: 'title description image',
+      model: 'Insights',
+    })
     .populate({
       path: 'bars',
       model: 'InsightBars',

@@ -25,7 +25,7 @@ router.patch(
   InsightsController.updateInsights,
 )
 router.get('/:id', InsightsController.getSingleInsights)
-router.delete('/:id', InsightsController.deleteInsights)
+router.delete('/:id', auth(USER_ROLES.ADMIN), InsightsController.deleteInsights)
 router.get('/', InsightsController.getAllInsights)
 
 router.post(

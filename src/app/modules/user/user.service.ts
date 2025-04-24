@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
 import ApiError from '../../../errors/ApiError'
-import { IUser } from './user.interface'
-import { User } from './user.model'
+import { ISchedule, IUser } from './user.interface'
+import { Schedule, User } from './user.model'
 
 import { USER_ROLES, USER_STATUS } from '../../../enum/user'
 import { generateOtp } from '../../../utils/crypto'
@@ -9,6 +9,9 @@ import { emailTemplate } from '../../../shared/emailTemplate'
 import { emailHelper } from '../../../helpers/emailHelper'
 import { JwtPayload } from 'jsonwebtoken'
 import { logger } from '../../../shared/logger'
+import { convertScheduleToLocal, formatSchedule } from '../../../utils/date'
+import { DateTime } from 'luxon'
+import { Bookings } from '../bookings/bookings.model'
 
 const createUser = async (payload: IUser): Promise<IUser | null> => {
   //check if user already exist
@@ -110,14 +113,96 @@ const createAdmin = async (): Promise<Partial<IUser> | null> => {
 }
 
 const getUserProfile = async (user: JwtPayload): Promise<IUser | null> => {
+  console.log(user)
   const result = await User.findById(user.authId)
 
   return result
 }
+
+const manageSchedule = async (user: JwtPayload, payload: ISchedule) => {
+  payload.user = user.authId
+
+  const formattedSchedule = formatSchedule(payload, payload.timeZone)
+  const isScheduleExist = await Schedule.findOne({ user: user.authId })
+
+  let schedule
+  if (isScheduleExist) {
+    schedule = await Schedule.findOneAndUpdate(
+      { user: user.authId },
+      {
+        $set: { schedule: formattedSchedule },
+      },
+      { new: true },
+    )
+  }
+  if (!isScheduleExist) {
+    schedule = await Schedule.create([
+      {
+        user: user.authId,
+        timeZone: payload.timeZone, //add timeZone to sche
+        schedule: formattedSchedule,
+      },
+    ])
+  }
+
+  return schedule
+}
+
+const getSchedule = async (user: JwtPayload) => {
+  const schedule = await Schedule.findOne({ user: user.authId }).lean()
+  if (!schedule) return []
+  const localTimeSchedule = convertScheduleToLocal(schedule, schedule?.timeZone)
+  return localTimeSchedule
+}
+
+const getAvailableTime = async (user: JwtPayload, date: string) => {
+  const selectedDate = DateTime.fromFormat(date, 'yyyy-MM-dd')
+
+  const [bookings, schedules] = await Promise.all([
+    Bookings.find({ user: user.authId, date: selectedDate.toJSDate() }).lean(),
+    Schedule.findOne({ user: user.authId }).lean(),
+  ])
+
+  if (!schedules) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Schedule not found')
+  }
+
+  const localTimeSchedule = convertScheduleToLocal(
+    {
+      user: schedules.user,
+      timeZone: schedules.timeZone,
+      schedule: schedules.schedule,
+    },
+    schedules.timeZone,
+  )
+
+  const slots = localTimeSchedule.map(slot => {
+    return {
+      user: schedules.user,
+      day: slot.day,
+      times: slot.times.map(time => {
+        return {
+          time: time.time,
+          timeCode: time.timeCode,
+          isBooked: bookings.some(
+            booking => booking.timeCode === time.timeCode,
+          ),
+        }
+      }),
+    }
+  })
+
+  return slots
+}
+
+// const updateUser = async (
 
 export const UserServices = {
   createUser,
   updateProfile,
   createAdmin,
   getUserProfile,
+  manageSchedule,
+  getSchedule,
+  getAvailableTime,
 }

@@ -39,8 +39,44 @@ const getProfile = catchAsync(async (req: Request, res: Response) => {
   })
 })
 
+const manageSchedule = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserServices.manageSchedule(req.user!, req.body)
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Schedule updated successfully',
+    data: result,
+  })
+})
+
+const getSchedule = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserServices.getSchedule(req.user!)
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Schedule retrieved successfully',
+    data: result,
+  })
+})
+
+const getAvailableTime = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserServices.getAvailableTime(
+    req.user!,
+    req.params.date as string,
+  )
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Available slot retrieved successfully',
+    data: result,
+  })
+})
+
 export const UserController = {
   createUser,
   updateProfile,
   getProfile,
+  manageSchedule,
+  getSchedule,
+  getAvailableTime,
 }

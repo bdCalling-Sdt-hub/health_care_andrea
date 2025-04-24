@@ -22,11 +22,12 @@ const updateInsights = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params
 
   const { image, ...insightsData } = req.body
+
   if (image?.length > 0) {
     insightsData.image = image[0]
   }
 
-  const result = await InsightsServices.updateInsights(id, req.body)
+  const result = await InsightsServices.updateInsights(id, insightsData)
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -121,7 +122,7 @@ const getInsightSections = catchAsync(async (req: Request, res: Response) => {
 
 const createBar = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params
-  const result = await InsightsServices.createSectionBar(id, req.body)
+  const result = await InsightsServices.createSectionBar(id, req.body.contents)
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,

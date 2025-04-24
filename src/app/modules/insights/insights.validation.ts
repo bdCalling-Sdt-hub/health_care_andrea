@@ -37,16 +37,27 @@ const updateSectionZodSchema = z.object({
 
 const createBarZodSchema = z.object({
   body: z.object({
-    title: z.string({
-      required_error: 'Title is required',
-    }),
-    body: z.array(z.string()).min(1),
+    contents: z.array(
+      z.object({
+        title: z.string({
+          required_error: 'Title is required',
+        }),
+        body: z.array(z.string()).min(1),
+      }),
+    ),
   }),
 })
+
 const updateBarZodSchema = z.object({
   body: z.object({
-    title: z.string().optional(),
-    body: z.array(z.string()).optional(),
+    contents: z.array(
+      z.object({
+        title: z.string({
+          required_error: 'Title is required',
+        }),
+        body: z.array(z.string()).min(1),
+      }),
+    ),
   }),
 })
 

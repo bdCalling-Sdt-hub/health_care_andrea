@@ -1,0 +1,28 @@
+import express from 'express'
+import { BookingsController } from './bookings.controller'
+import { USER_ROLES } from '../../../enum/user'
+import auth from '../../middleware/auth'
+import validateRequest from '../../middleware/validateRequest'
+import { BookingsValidations } from './bookings.validation'
+
+const router = express.Router()
+
+router.post(
+  '/',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  validateRequest(BookingsValidations.create),
+  BookingsController.createBookings,
+)
+
+router.patch(
+  '/:id',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  validateRequest(BookingsValidations.update),
+  BookingsController.updateBookings,
+)
+
+router.get('/', BookingsController.getAllBookings)
+router.get('/:id', BookingsController.getSingleBookings)
+router.delete('/:id', BookingsController.deleteBookings)
+
+export const BookingsRoutes = router

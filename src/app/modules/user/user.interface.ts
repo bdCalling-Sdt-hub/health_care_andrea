@@ -32,9 +32,26 @@ export type IUser = {
   updatedAt: Date
 }
 
+export type TimeSlot = {
+  time: string
+  timeCode: number
+
+}
+export type DaySchedule = {
+  day: string
+  times: TimeSlot[]
+}
+export type ISchedule = {
+  user: Types.ObjectId
+  timeZone: string
+  schedule: DaySchedule[]
+}
+
 export type UserModel = {
   isPasswordMatched: (
     givenPassword: string,
     savedPassword: string,
   ) => Promise<boolean>
 } & Model<IUser>
+
+export type ScheduleModel = Model<ISchedule>

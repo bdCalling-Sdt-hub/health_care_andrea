@@ -14,7 +14,6 @@ const validateRequest =
       })
       return next()
     } catch (error) {
-      console.log(req.body)
       if (
         req.body?.image?.length > 0 ||
         req.body?.media?.length > 0 ||

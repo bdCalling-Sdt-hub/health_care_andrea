@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose'
-import { IUser, UserModel } from './user.interface'
+import { ISchedule, IUser, ScheduleModel, UserModel } from './user.interface'
 import { USER_ROLES, USER_STATUS } from '../../../enum/user'
 import ApiError from '../../../errors/ApiError'
 import { StatusCodes } from 'http-status-codes'
@@ -98,6 +98,58 @@ const userSchema = new Schema<IUser, UserModel>(
   },
 )
 
+// Define the TimeSlot schema
+
+const TimeSlotSchema = new Schema(
+  {
+    time: {
+      type: String,
+      required: true,
+    },
+    timeCode: {
+      type: Number,
+      required: true,
+    },
+  },
+  { _id: false },
+)
+
+const DayScheduleSchema = new Schema(
+  {
+    day: {
+      type: String,
+      required: true,
+      enum: [
+        'sunday',
+        'monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+      ],
+    },
+    times: [TimeSlotSchema],
+  },
+  { _id: false },
+)
+
+const ScheduleSchema = new Schema<ISchedule, ScheduleModel>(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    timeZone: {
+      type: String,
+      required: true,
+    },
+    schedule: [DayScheduleSchema],
+  },
+  { timestamps: true },
+)
+
 userSchema.statics.isPasswordMatched = async function (
   givenPassword: string,
   savedPassword: string,
@@ -126,3 +178,7 @@ userSchema.pre<IUser>('save', async function (next) {
 })
 
 export const User = model<IUser, UserModel>('User', userSchema)
+export const Schedule = model<ISchedule, ScheduleModel>(
+  'Schedule',
+  ScheduleSchema,
+)
