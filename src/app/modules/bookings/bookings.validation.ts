@@ -15,6 +15,7 @@ export const BookingsValidations = {
       message: z.string(),
       date: z.string(),
       time: z.string(),
+      timezone: z.string(),
       timeCode: z.number(),
     }),
   }),
@@ -33,6 +34,7 @@ export const BookingsValidations = {
       message: z.string(),
       date: z.string(), // Add the date field to the validation schema
       time: z.string(),
+      timezone: z.string(),
       timeCode: z.number(),
     }),
   }),

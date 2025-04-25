@@ -10,25 +10,20 @@ export type IInsights = {
   updatedAt: Date
 }
 
+export type InsightBars = {
+  title: string
+  body: string[]
+}
+
 export type ISections = {
   _id: Types.ObjectId
   insight: Types.ObjectId
   title: string
   image: string
-  bars: Types.ObjectId[]
-  createdAt: Date
-  updatedAt: Date
-}
-
-export type InsightBars = {
-  _id: Types.ObjectId
-  section: Types.ObjectId
-  title: string
-  body: string[]
+  bars: InsightBars[]
   createdAt: Date
   updatedAt: Date
 }
 
 export type InsightsModel = Model<IInsights>
 export type ISectionModel = Model<ISections>
-export type InsightBarsModel = Model<InsightBars>

@@ -4,7 +4,6 @@ import {
   ISectionModel,
   ISections,
   InsightBars,
-  InsightBarsModel,
   InsightsModel,
 } from './insights.interface'
 
@@ -20,6 +19,14 @@ const insightsSchema = new Schema<IInsights, InsightsModel>(
   },
 )
 
+const insightBarsSchema = new Schema<InsightBars>(
+  {
+    title: { type: String },
+    body: [{ type: String }],
+  },
+  { _id: false },
+)
+
 const sectionSchema = new Schema<ISections, ISectionModel>(
   {
     insight: {
@@ -28,19 +35,7 @@ const sectionSchema = new Schema<ISections, ISectionModel>(
     }, // Reference to the Insight
     title: { type: String },
     image: { type: String },
-    bars: [{ type: Schema.Types.ObjectId, ref: 'InsightBars' }],
-  },
-  { timestamps: true },
-)
-
-const insightBarsSchema = new Schema<InsightBars, InsightBarsModel>(
-  {
-    section: {
-      type: Schema.Types.ObjectId,
-      ref: 'Section',
-    }, // Reference to the Section
-    title: { type: String },
-    body: [{ type: String }],
+    bars: [insightBarsSchema],
   },
   { timestamps: true },
 )
@@ -51,7 +46,3 @@ export const Insights = model<IInsights, InsightsModel>(
 )
 
 export const Section = model<ISections, ISectionModel>('Section', sectionSchema)
-export const Bars = model<InsightBars, InsightBarsModel>(
-  'InsightBars',
-  insightBarsSchema,
-)

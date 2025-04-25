@@ -122,6 +122,7 @@ const getInsightSections = catchAsync(async (req: Request, res: Response) => {
 
 const createBar = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params
+  console.log(req.body.contents!)
   const result = await InsightsServices.createSectionBar(id, req.body.contents)
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -142,30 +143,6 @@ const updateBar = catchAsync(async (req: Request, res: Response) => {
   })
 })
 
-const deleteBar = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params
-  const result = await InsightsServices.deleteSectionBar(id)
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: 'Insights bar deleted successfully',
-    data: result,
-  })
-})
-
-const getAllBarsBySectionId = catchAsync(
-  async (req: Request, res: Response) => {
-    const { id } = req.params
-    const result = await InsightsServices.getAllBarsBySectionId(id)
-    sendResponse(res, {
-      statusCode: StatusCodes.OK,
-      success: true,
-      message: 'Insights bars retrieved successfully',
-      data: result,
-    })
-  },
-)
-
 export const InsightsController = {
   createInsights,
   updateInsights,
@@ -181,6 +158,4 @@ export const InsightsController = {
   //bar
   createBar,
   updateBar,
-  deleteBar,
-  getAllBarsBySectionId,
 }

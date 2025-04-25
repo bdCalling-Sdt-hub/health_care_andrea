@@ -63,11 +63,22 @@ const getAvailableTime = catchAsync(async (req: Request, res: Response) => {
   const result = await UserServices.getAvailableTime(
     req.user!,
     req.params.date as string,
+    req.query.timezone as string,
   )
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
     message: 'Available slot retrieved successfully',
+    data: result,
+  })
+})
+
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserServices.getALlUsers()
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Users retrieved successfully',
     data: result,
   })
 })
@@ -79,4 +90,5 @@ export const UserController = {
   manageSchedule,
   getSchedule,
   getAvailableTime,
+  getAllUsers,
 }

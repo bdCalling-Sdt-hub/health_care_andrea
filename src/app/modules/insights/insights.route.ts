@@ -65,12 +65,4 @@ router.patch(
   InsightsController.updateBar,
 )
 
-router.delete(
-  '/sections/bars/:id',
-  auth(USER_ROLES.ADMIN),
-  InsightsController.deleteBar,
-)
-
-router.get('/sections/bars/:id', InsightsController.getAllBarsBySectionId)
-
 export const InsightsRoutes = router

@@ -9,6 +9,10 @@ import { HealthcareconsultantRoutes } from '../app/modules/healthcareconsultant/
 
 import { ChallengesRoutes } from '../app/modules/challenges/challenges.route'
 import { BookingsRoutes } from '../app/modules/bookings/bookings.route'
+import { NotificationRoutes } from '../app/modules/notification/notification.route'
+import { FaqRoutes } from '../app/modules/faq/faq.route'
+import { PublicRoutes } from '../app/modules/public/public.route'
+import { DashboardRoutes } from '../app/modules/dashboard/dashboard.route'
 
 const router = express.Router()
 
@@ -22,6 +26,13 @@ const apiRoutes: { path: string; route: Router }[] = [
   { path: '/healthcareconsultant', route: HealthcareconsultantRoutes },
   { path: '/challenges', route: ChallengesRoutes },
   { path: '/bookings', route: BookingsRoutes },
+  {
+    path: '/dashboard',
+    route: DashboardRoutes,
+  },
+  { path: '/notification', route: NotificationRoutes },
+  { path: '/faq', route: FaqRoutes },
+  { path: '/public', route: PublicRoutes },
 ]
 
 apiRoutes.forEach(route => {

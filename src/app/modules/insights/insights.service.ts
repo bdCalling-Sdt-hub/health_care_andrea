@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
 import { IInsights, ISections, InsightBars } from './insights.interface'
 
-import { Bars, Insights, Section } from './insights.model'
+import { Insights, Section } from './insights.model'
 import ApiError from '../../../errors/ApiError'
 import { Types } from 'mongoose'
 
@@ -59,18 +59,14 @@ const deleteInsights = async (id: string): Promise<IInsights | null> => {
   const session = await Section.startSession()
   try {
     session.startTransaction()
-    const result = await Insights.findByIdAndDelete(new Types.ObjectId(id))
+    const result = await Insights.findByIdAndDelete(
+      new Types.ObjectId(id),
+    ).session(session)
 
     if (!result) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to delete insights')
     }
-
-    const sectionIds = result.sections.map(section => section.toString())
-
-    await Promise.all([
-      Section.deleteMany({ _id: { $in: result.sections } }),
-      Bars.deleteMany({ _id: { $in: sectionIds } }),
-    ])
+    await Promise.all([Section.deleteMany({ _id: { $in: result.sections } })])
     await session.commitTransaction()
     return result
   } catch (error) {
@@ -147,10 +143,6 @@ const getAllSectionsByInsightsId = async (
       select: 'title description image',
       model: 'Insights',
     })
-    .populate({
-      path: 'bars',
-      model: 'InsightBars',
-    })
     .lean()
 
   return result
@@ -175,15 +167,14 @@ const deleteInsightSection = async (
     if (!result)
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to delete section')
     // Update the insights collection to remove the section's _id
-    const [updateResult, deleteBars] = await Promise.all([
+    const [updateResult] = await Promise.all([
       Insights.updateOne(
         { _id: result.insight },
         { $pull: { sections: result._id } },
         { session },
       ),
-      Bars.deleteMany({ section: result._id }, { session }),
     ])
-    if (!updateResult || !deleteBars) {
+    if (!updateResult) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to delete section')
     }
     //also delete all bars
@@ -199,61 +190,31 @@ const deleteInsightSection = async (
 
 const createSectionBar = async (
   id: string,
-  payload: Partial<InsightBars>,
-): Promise<InsightBars | null> => {
-  const session = await Section.startSession()
-  try {
-    session.startTransaction()
-    payload.section = new Types.ObjectId(id)
-    const result = await Bars.create({ ...payload, session })
-    if (!result || !result._id) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create section')
-    }
-    const updateResult = await Section.findByIdAndUpdate(
-      new Types.ObjectId(id),
-      { $push: { bars: result._id } },
-      { new: true, session },
-    )
-
-    if (!updateResult) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        'Failed to update insights with new section',
-      )
-    }
-    await session.commitTransaction()
-    return result
-  } catch (error) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create section')
-  } finally {
-    await session.endSession()
+  payload: IInsights[],
+): Promise<ISections | null> => {
+  const result = await Section.findByIdAndUpdate(
+    new Types.ObjectId(id),
+    { $set: { bars: payload } },
+    { new: true },
+  )
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create section bar.')
   }
+
+  return result
 }
 
 const updateSectionBar = async (
   id: string,
   payload: Partial<InsightBars>,
-): Promise<InsightBars | null> => {
-  const result = await Bars.findByIdAndUpdate(
+): Promise<ISections | null> => {
+  const result = await Section.findByIdAndUpdate(
     new Types.ObjectId(id),
     { $set: payload },
     { new: true },
   )
   if (!result)
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update section')
-  return result
-}
-
-const getAllBarsBySectionId = async (
-  id: string,
-): Promise<InsightBars[] | null> => {
-  const result = await Bars.find({ section: new Types.ObjectId(id) })
-  return result
-}
-const deleteSectionBar = async (id: string): Promise<InsightBars | null> => {
-  const result = await Bars.findByIdAndDelete(new Types.ObjectId(id))
-  if (!result)
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to delete section')
   return result
 }
 
@@ -274,6 +235,4 @@ export const InsightsServices = {
   //bar
   createSectionBar,
   updateSectionBar,
-  getAllBarsBySectionId,
-  deleteSectionBar,
 }

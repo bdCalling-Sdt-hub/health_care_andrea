@@ -21,7 +21,12 @@ router.patch(
   BookingsController.updateBookings,
 )
 
-router.get('/', BookingsController.getAllBookings)
+router.get(
+  '/my-bookings',
+  auth(USER_ROLES.USER),
+  BookingsController.getUSerWiseBookings,
+)
+router.get('/', auth(USER_ROLES.ADMIN), BookingsController.getAllBookings)
 router.get('/:id', BookingsController.getSingleBookings)
 router.delete('/:id', BookingsController.deleteBookings)
 

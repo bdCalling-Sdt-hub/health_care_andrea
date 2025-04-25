@@ -155,7 +155,11 @@ const getSchedule = async (user: JwtPayload) => {
   return localTimeSchedule
 }
 
-const getAvailableTime = async (user: JwtPayload, date: string) => {
+const getAvailableTime = async (
+  user: JwtPayload,
+  date: string,
+  timezone: string,
+) => {
   const selectedDate = DateTime.fromFormat(date, 'yyyy-MM-dd')
 
   const [bookings, schedules] = await Promise.all([
@@ -166,14 +170,13 @@ const getAvailableTime = async (user: JwtPayload, date: string) => {
   if (!schedules) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Schedule not found')
   }
-
   const localTimeSchedule = convertScheduleToLocal(
     {
       user: schedules.user,
       timeZone: schedules.timeZone,
       schedule: schedules.schedule,
     },
-    schedules.timeZone,
+    timezone,
   )
 
   const slots = localTimeSchedule.map(slot => {
@@ -195,6 +198,11 @@ const getAvailableTime = async (user: JwtPayload, date: string) => {
   return slots
 }
 
+const getALlUsers = async () => {
+  const result = await User.find({ status: { $nin: [USER_STATUS.DELETED] } })
+  return result
+}
+
 // const updateUser = async (
 
 export const UserServices = {
@@ -205,4 +213,5 @@ export const UserServices = {
   manageSchedule,
   getSchedule,
   getAvailableTime,
+  getALlUsers,
 }

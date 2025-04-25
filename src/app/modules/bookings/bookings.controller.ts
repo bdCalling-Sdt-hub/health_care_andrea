@@ -6,7 +6,7 @@ import { StatusCodes } from 'http-status-codes'
 
 const createBookings = catchAsync(async (req: Request, res: Response) => {
   const bookingsData = req.body
-  const result = await BookingsServices.createBookings(bookingsData)
+  const result = await BookingsServices.createBookings(req.user!, bookingsData)
 
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
@@ -19,7 +19,11 @@ const createBookings = catchAsync(async (req: Request, res: Response) => {
 const updateBookings = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params
   const bookingsData = req.body
-  const result = await BookingsServices.updateBookings(id, bookingsData)
+  const result = await BookingsServices.updateBookings(
+    req.user!,
+    id,
+    bookingsData,
+  )
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -64,10 +68,21 @@ const deleteBookings = catchAsync(async (req: Request, res: Response) => {
   })
 })
 
+const getUSerWiseBookings = catchAsync(async (req: Request, res: Response) => {
+  const result = await BookingsServices.getUSerWiseBookings(req.user!)
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Bookings retrieved successfully',
+    data: result,
+  })
+})
+
 export const BookingsController = {
   createBookings,
   updateBookings,
   getSingleBookings,
   getAllBookings,
   deleteBookings,
+  getUSerWiseBookings,
 }

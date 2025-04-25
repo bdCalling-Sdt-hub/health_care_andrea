@@ -13,10 +13,12 @@ export type IBookings = {
   mode: string
   message: string
   scheduledAt: Date
-  time: string
   timeCode: number
   status: string
   fee: number
+  link: string
+  time: string
+  timezone: string
   paymentMethod: string
   paymentRequired: boolean
   createdAt: Date
