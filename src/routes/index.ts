@@ -13,6 +13,7 @@ import { NotificationRoutes } from '../app/modules/notification/notification.rou
 import { FaqRoutes } from '../app/modules/faq/faq.route'
 import { PublicRoutes } from '../app/modules/public/public.route'
 import { DashboardRoutes } from '../app/modules/dashboard/dashboard.route'
+import { PaymentRoutes } from '../app/modules/payment/payment.route'
 
 const router = express.Router()
 
@@ -26,6 +27,10 @@ const apiRoutes: { path: string; route: Router }[] = [
   { path: '/healthcareconsultant', route: HealthcareconsultantRoutes },
   { path: '/challenges', route: ChallengesRoutes },
   { path: '/bookings', route: BookingsRoutes },
+  {
+    path: '/payments',
+    route: PaymentRoutes,
+  },
   {
     path: '/dashboard',
     route: DashboardRoutes,

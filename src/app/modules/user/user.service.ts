@@ -12,6 +12,7 @@ import { logger } from '../../../shared/logger'
 import { convertScheduleToLocal, formatSchedule } from '../../../utils/date'
 import { DateTime } from 'luxon'
 import { Bookings } from '../bookings/bookings.model'
+import { Types } from 'mongoose'
 
 const createUser = async (payload: IUser): Promise<IUser | null> => {
   //check if user already exist
@@ -64,8 +65,8 @@ const createUser = async (payload: IUser): Promise<IUser | null> => {
 
 const updateProfile = async (user: JwtPayload, payload: Partial<IUser>) => {
   // console.log(first)
-  const updatedProfile = await User.findOneAndUpdate(
-    { _id: user.authId, status: { $nin: [USER_STATUS.DELETED] } },
+  const updatedProfile = await User.findByIdAndUpdate(
+    new Types.ObjectId(user.authId),
     {
       $set: payload,
     },

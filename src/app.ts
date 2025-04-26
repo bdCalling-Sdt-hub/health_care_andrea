@@ -7,6 +7,7 @@ import { Morgan } from './shared/morgan'
 import cookieParser from 'cookie-parser'
 import globalErrorHandler from './app/middleware/globalErrorHandler'
 import passport from './app/modules/auth/passport.auth/config/passport'
+import { PaymentController } from './app/modules/payment/payment.controller'
 
 const app = express()
 
@@ -20,6 +21,12 @@ app.use(
     credentials: true,
   }),
 )
+router.post(
+  '/api/v1/webhook',
+  express.raw({ type: 'application/json' }),
+  PaymentController.handleWebhook,
+)
+
 app.use(express.json())
 app.use(passport.initialize())
 app.use(express.urlencoded({ extended: true }))

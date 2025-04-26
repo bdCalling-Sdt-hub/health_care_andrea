@@ -35,6 +35,12 @@ const userSchema = new Schema<IUser, UserModel>(
     profile: {
       type: String,
     },
+    address: {
+      type: String,
+    },
+    location: {
+      type: String,
+    },
     password: {
       type: String,
       required: true,

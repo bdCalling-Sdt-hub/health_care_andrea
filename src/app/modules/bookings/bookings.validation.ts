@@ -3,7 +3,6 @@ import { z } from 'zod'
 export const BookingsValidations = {
   create: z.object({
     body: z.object({
-      user: z.string(),
       firstName: z.string(),
       lastName: z.string().optional(),
       contact: z.string(),
@@ -22,7 +21,6 @@ export const BookingsValidations = {
 
   update: z.object({
     body: z.object({
-      user: z.string(),
       firstName: z.string(),
       lastName: z.string().optional(),
       contact: z.string(),
@@ -34,7 +32,6 @@ export const BookingsValidations = {
       message: z.string(),
       date: z.string(), // Add the date field to the validation schema
       time: z.string(),
-      timezone: z.string(),
       timeCode: z.number(),
     }),
   }),

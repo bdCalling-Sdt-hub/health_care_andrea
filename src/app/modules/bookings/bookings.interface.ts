@@ -1,6 +1,6 @@
 import { Model, Types } from 'mongoose'
 
-export type IBookings = {
+export interface IBookings {
   user: Types.ObjectId
   firstName: string
   lastName?: string

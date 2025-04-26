@@ -29,8 +29,7 @@ export default {
   application_fee: process.env.APPLICATION_FEE,
   instant_transfer_fee: process.env.INSTANT_TRANSFER_FEE,
   openAi_api_key: process.env.OPENAI_API_KEY,
-  stripe_secret: process.env.STRIPE_SECRET_KEY,
-  stripe_account_id: process.env.STRIPE_ACCOUNT_ID,
+
   webhook_secret: process.env.WEBHOOK_SECRET,
   email: {
     from: process.env.EMAIL_FROM,
@@ -48,5 +47,10 @@ export default {
     cloudinary_name: process.env.CLOUDINARY_NAME,
     cloudinary_api_key: process.env.CLOUDINARY_API_KEY,
     cloudinary_secret: process.env.CLOUDINARY_SECRET,
+  },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY,
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   },
 }

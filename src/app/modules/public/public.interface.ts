@@ -5,4 +5,13 @@ export type IPublic = {
   type: string
 }
 
+export interface IContact {
+  name: string
+  email: string
+  phone: string
+  country: string
+  message: string
+  createdAt?: Date
+  updatedAt?: Date
+}
 export type PublicModel = Model<IPublic>

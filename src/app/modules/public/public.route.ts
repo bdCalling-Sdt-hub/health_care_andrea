@@ -1,20 +1,22 @@
 import express from 'express'
 import { PublicController } from './public.controller'
-import { USER_ROLES } from '../../../enum/user'
 import validateRequest from '../../middleware/validateRequest'
-import { PublicValidations } from './public.validation'
-import auth from '../../middleware/auth'
+import { PublicValidation } from './public.validation'
 
 const router = express.Router()
 
 router.post(
   '/',
-  auth(USER_ROLES.ADMIN),
-  validateRequest(PublicValidations.create),
+  validateRequest(PublicValidation.create),
   PublicController.createPublic,
 )
 router.get('/:type', PublicController.getAllPublics)
 
-router.delete('/:id', auth(USER_ROLES.ADMIN), PublicController.deletePublic)
+router.delete('/:id', PublicController.deletePublic)
+router.post(
+  '/contact',
+  validateRequest(PublicValidation.contactZodSchema),
+  PublicController.createContact,
+)
 
 export const PublicRoutes = router

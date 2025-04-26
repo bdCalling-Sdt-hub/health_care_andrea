@@ -19,9 +19,12 @@ export type IUser = {
   email?: string
   serviceTypes: string
   profile?: string
+  location: string
   phone: string
   status: string
   verified: boolean
+  about: string
+  
   address?: string
   password: string
   role: string
@@ -35,7 +38,6 @@ export type IUser = {
 export type TimeSlot = {
   time: string
   timeCode: number
-
 }
 export type DaySchedule = {
   day: string

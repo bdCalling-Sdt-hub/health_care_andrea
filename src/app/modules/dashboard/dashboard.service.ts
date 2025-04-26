@@ -89,7 +89,7 @@ const getServiceAnalytics = async () => {
       {
         $project: {
           _id: 1,
-          serviceName: '$serviceDetails.name',
+          serviceName: '$serviceDetails.title',
           count: 1,
           percentage: {
             $multiply: [{ $divide: ['$count', totalBookings] }, 100],
