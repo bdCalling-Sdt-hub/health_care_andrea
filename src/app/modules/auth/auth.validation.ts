@@ -120,7 +120,7 @@ const changePasswordZodSchema = z.object({
         .string({
           required_error: 'New password is required',
         })
-        .min(8, 'Password must be at least 8 characters'),
+        .min(6, 'Password must be at least 6 characters'),
       confirmPassword: z.string({
         required_error: 'Confirm password is required',
       }),

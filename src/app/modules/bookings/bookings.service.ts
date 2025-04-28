@@ -45,7 +45,11 @@ const createBookings = async (
 }
 
 const getAllBookings = async () => {
-  const result = await Bookings.find()
+  const result = await Bookings.find().populate('service', {
+    title: 1,
+    image: 1,
+  })
+  console.log(result)
 
   return result
 }

@@ -17,6 +17,7 @@ const challengesSchema = new Schema<IChallenges, ChallengesModel>(
     background: { type: String },
     images: { type: [String] },
     contents: [contentsItemSchema],
+    footer: { type: String },
   },
   {
     timestamps: true,

@@ -13,6 +13,7 @@ const createChallengeZodSchema = z.object({
     background: z.string(),
     image: z.array(z.string()),
     contents: z.array(contentsItemSchema),
+    footer: z.string(),
   }),
 })
 const updateChallengeZodSchema = z.object({
@@ -22,6 +23,7 @@ const updateChallengeZodSchema = z.object({
     background: z.string().optional(),
     image: z.array(z.string()).optional(),
     contents: z.array(contentsItemSchema).optional(),
+    footer: z.string().optional(),
   }),
 })
 

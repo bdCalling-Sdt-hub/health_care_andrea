@@ -75,7 +75,7 @@ const createContact = async (payload: IContact) => {
       `,
     }
 
-    await emailHelper.sendEmail(emailData)
+    emailHelper.sendEmail(emailData)
 
     // Send confirmation email to the user
     const userEmailData = {
@@ -91,7 +91,7 @@ const createContact = async (payload: IContact) => {
       `,
     }
 
-    await emailHelper.sendEmail(userEmailData)
+    emailHelper.sendEmail(userEmailData)
 
     return {
       message: 'Contact form submitted successfully',

@@ -86,6 +86,19 @@ const handleLoginLogic = async (payload: ILoginData, isUserExist: any) => {
   )
 
   const tokens = AuthHelper.createToken(isUserExist._id, isUserExist.role)
+
+  await User.findByIdAndUpdate(
+    isUserExist._id,
+    {
+      $set: {
+        authentication: {
+          restrictionLeftAt: null,
+          wrongLoginAttempts: 0,
+        },
+      },
+    },
+    { new: true },
+  )
   return tokens
 }
 

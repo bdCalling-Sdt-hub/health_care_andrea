@@ -12,6 +12,7 @@ export type IChallenges = {
   description: string
   background: string
   images: string[]
+  footer: string
   contents: ContentsItem[]
   createdAt: Date
   updatedAt: Date
