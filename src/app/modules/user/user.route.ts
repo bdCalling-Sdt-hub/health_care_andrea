@@ -31,7 +31,11 @@ router.get(
 )
 
 router.post('/schedule', auth(USER_ROLES.ADMIN), UserController.manageSchedule)
-router.get('/schedule', auth(USER_ROLES.ADMIN), UserController.getSchedule)
+router.get(
+  '/schedule',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  UserController.getSchedule,
+)
 router.get(
   '/schedule/:date',
   auth(USER_ROLES.ADMIN, USER_ROLES.USER),

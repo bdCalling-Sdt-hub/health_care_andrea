@@ -16,7 +16,7 @@ import { Types } from 'mongoose'
 
 const createUser = async (payload: IUser): Promise<IUser | null> => {
   //check if user already exist
-  payload.email = payload.email?.toLowerCase()
+  payload.email = payload.email?.toLowerCase().trim()
   const isUserExist = await User.findOne({
     email: payload.email,
     status: { $nin: [USER_STATUS.DELETED] },
@@ -162,27 +162,40 @@ const getAvailableTime = async (
   timezone: string,
 ) => {
   const selectedDate = DateTime.fromFormat(date, 'yyyy-MM-dd')
+  // Get the day name (Monday, Tuesday, etc.) from the selected date
+  const selectedDayName = selectedDate.weekdayLong
 
   const [bookings, schedules] = await Promise.all([
     Bookings.find({ user: user.authId, date: selectedDate.toJSDate() }).lean(),
-    Schedule.findOne({ user: user.authId }).lean(),
+    Schedule.find({}).lean(),
   ])
 
-  if (!schedules) {
+  if (!schedules || schedules.length === 0) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Schedule not found')
   }
+
   const localTimeSchedule = convertScheduleToLocal(
     {
-      user: schedules.user,
-      timeZone: schedules.timeZone,
-      schedule: schedules.schedule,
+      user: schedules[0].user,
+      timeZone: schedules[0].timeZone,
+      schedule: schedules[0].schedule,
     },
     timezone,
   )
+  console.log(selectedDayName)
+  // Filter to only include the selected day
+  const selectedDaySchedule = localTimeSchedule.filter(
+    slot => slot.day.toLowerCase() === selectedDayName?.toLocaleLowerCase(),
+  )
 
-  const slots = localTimeSchedule.map(slot => {
+  if (selectedDaySchedule.length === 0) {
+    return [] // No schedule available for the selected day
+  }
+
+  // Map the slots for the selected day only
+  const slots = selectedDaySchedule.map(slot => {
     return {
-      user: schedules.user,
+      user: schedules[0].user,
       day: slot.day,
       times: slot.times.map(time => {
         return {

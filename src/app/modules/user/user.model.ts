@@ -32,6 +32,9 @@ const userSchema = new Schema<IUser, UserModel>(
       type: Boolean,
       default: false,
     },
+    about: {
+      type: String,
+    },
     profile: {
       type: String,
     },
