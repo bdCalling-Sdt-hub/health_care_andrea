@@ -57,7 +57,7 @@ const getAllBookings = async () => {
 const getUSerWiseBookings = async (user: JwtPayload) => {
   const result = await Bookings.find({ user: user.authId }).populate(
     'service',
-    { name: 1, price: 1, duration: 1, image: 1 },
+    { title: 1, image: 1 },
   )
   return result
 }

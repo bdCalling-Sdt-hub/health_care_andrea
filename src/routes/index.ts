@@ -14,6 +14,7 @@ import { FaqRoutes } from '../app/modules/faq/faq.route'
 import { PublicRoutes } from '../app/modules/public/public.route'
 import { DashboardRoutes } from '../app/modules/dashboard/dashboard.route'
 import { PaymentRoutes } from '../app/modules/payment/payment.route'
+import { ReviewRoutes } from '../app/modules/review/review.route'
 
 const router = express.Router()
 
@@ -38,6 +39,8 @@ const apiRoutes: { path: string; route: Router }[] = [
   { path: '/notification', route: NotificationRoutes },
   { path: '/faq', route: FaqRoutes },
   { path: '/public', route: PublicRoutes },
+
+  { path: '/review', route: ReviewRoutes },
 ]
 
 apiRoutes.forEach(route => {
