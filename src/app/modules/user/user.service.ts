@@ -13,6 +13,7 @@ import { convertScheduleToLocal, formatSchedule } from '../../../utils/date'
 import { DateTime } from 'luxon'
 import { Bookings } from '../bookings/bookings.model'
 import { Types } from 'mongoose'
+import { BOOKING_STATUS } from '../../../enum/booking'
 
 const createUser = async (payload: IUser): Promise<IUser | null> => {
   //check if user already exist
@@ -161,12 +162,26 @@ const getAvailableTime = async (
   date: string,
   timezone: string,
 ) => {
+  // Ensure date is in the correct format
   const selectedDate = DateTime.fromFormat(date, 'yyyy-MM-dd')
+
+  if (!selectedDate.isValid) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Invalid date format. Please use yyyy-MM-dd format.',
+    )
+  }
+
   // Get the day name (Monday, Tuesday, etc.) from the selected date
   const selectedDayName = selectedDate.weekdayLong
 
+  // Find all bookings for the selected date that are not completed
+  // Use date field instead of scheduledAt for the query
   const [bookings, schedules] = await Promise.all([
-    Bookings.find({ user: user.authId, date: selectedDate.toJSDate() }).lean(),
+    Bookings.find({
+      status: { $nin: [BOOKING_STATUS.COMPLETED] },
+      date: selectedDate.toJSDate(),
+    }).lean(),
     Schedule.find({}).lean(),
   ])
 
@@ -182,10 +197,10 @@ const getAvailableTime = async (
     },
     timezone,
   )
-  console.log(selectedDayName)
+
   // Filter to only include the selected day
   const selectedDaySchedule = localTimeSchedule.filter(
-    slot => slot.day.toLowerCase() === selectedDayName?.toLocaleLowerCase(),
+    slot => slot.day.toLowerCase() === selectedDayName?.toLowerCase(),
   )
 
   if (selectedDaySchedule.length === 0) {
@@ -197,6 +212,8 @@ const getAvailableTime = async (
     return {
       user: schedules[0].user,
       day: slot.day,
+      date: date,
+      timezone: timezone,
       times: slot.times.map(time => {
         return {
           time: time.time,

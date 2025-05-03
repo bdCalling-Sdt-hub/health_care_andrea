@@ -17,6 +17,7 @@ const bookingsSchema = new Schema<IBookings, BookingsModel>(
     message: { type: String },
     scheduledAt: { type: Date },
     timeCode: { type: Number },
+    timezone: { type: String },
     status: {
       type: String,
       enum: [

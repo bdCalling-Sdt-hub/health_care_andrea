@@ -6,8 +6,8 @@ import { StatusCodes } from 'http-status-codes'
 
 const createReview = catchAsync(async (req: Request, res: Response) => {
   const { image, ...reviewData } = req.body
-  if (image.length > 0) {
-    reviewData.image = image[0].filename
+  if (image?.length > 0) {
+    reviewData.image = image[0]
   }
   const result = await ReviewServices.createReview(reviewData)
 
@@ -22,8 +22,8 @@ const createReview = catchAsync(async (req: Request, res: Response) => {
 const updateReview = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params
   const { image, ...reviewData } = req.body
-  if (image.length > 0) {
-    reviewData.image = image[0].filename
+  if (image?.length > 0) {
+    reviewData.image = image[0]
   }
   const result = await ReviewServices.updateReview(id, reviewData)
 

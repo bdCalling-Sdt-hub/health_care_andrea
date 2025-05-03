@@ -62,7 +62,6 @@ const getSchedule = catchAsync(async (req: Request, res: Response) => {
 })
 
 const getAvailableTime = catchAsync(async (req: Request, res: Response) => {
-  console.log('💕')
   const result = await UserServices.getAvailableTime(
     req.user!,
     req.params.date as string,
