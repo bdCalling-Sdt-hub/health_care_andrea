@@ -16,9 +16,10 @@ passport.use(
       passReqToCallback: true,
     },
     async (req, email, password, done) => {
+      const lowerEmail = email.toLowerCase()
       try {
         const isUserExist = await User.findOne({
-          email,
+          email: lowerEmail,
           status: { $in: [USER_STATUS.ACTIVE, USER_STATUS.RESTRICTED] },
         })
           .select('+password +authentication')

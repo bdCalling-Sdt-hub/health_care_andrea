@@ -10,7 +10,7 @@ export interface IBookings {
   country: string
   state: string
   service: Types.ObjectId
-  mode: string
+  note: string
   message: string
   scheduledAt: Date
   timeCode: number

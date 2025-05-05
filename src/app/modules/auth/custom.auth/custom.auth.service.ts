@@ -8,7 +8,7 @@ import { Token } from '../../token/token.model'
 import { IResetPassword } from '../auth.interface'
 import { emailHelper } from '../../../../helpers/emailHelper'
 import { emailTemplate } from '../../../../shared/emailTemplate'
-import { generateOtp } from '../../../../utils/crypto'
+import cryptoToken, { generateOtp } from '../../../../utils/crypto'
 import bcrypt from 'bcrypt'
 import { ILoginData } from '../../../../interfaces/auth'
 import { AuthCommonServices } from '../common'
@@ -203,8 +203,15 @@ const verifyAccount = async (
       { new: true },
     )
 
-    const resetToken = AuthHelper.createToken(isUserExist._id, isUserExist.role)
-    returnable.token = resetToken.accessToken
+    const token = cryptoToken()
+
+    const resetToken = await Token.create({
+      user: isUserExist._id,
+      token,
+    })
+    returnable.token = resetToken.token
+    returnable.message =
+      'OTP verified successfully, please reset your password.'
     returnable.message =
       'OTP verified successfully, please reset your password.'
   }

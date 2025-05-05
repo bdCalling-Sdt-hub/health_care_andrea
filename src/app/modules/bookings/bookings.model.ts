@@ -13,7 +13,7 @@ const bookingsSchema = new Schema<IBookings, BookingsModel>(
     country: { type: String },
     state: { type: String },
     service: { type: Schema.Types.ObjectId, ref: 'Service' },
-    mode: { type: String },
+    note: { type: String },
     message: { type: String },
     scheduledAt: { type: Date },
     timeCode: { type: Number },
