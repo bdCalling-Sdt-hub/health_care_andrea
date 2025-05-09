@@ -16,7 +16,7 @@ passport.use(
       passReqToCallback: true,
     },
     async (req, email, password, done) => {
-      const lowerEmail = email.toLowerCase()
+      const lowerEmail = email.toLowerCase().trim()
       try {
         const isUserExist = await User.findOne({
           email: lowerEmail,

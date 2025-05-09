@@ -213,6 +213,8 @@ export const fileAndBodyProcessorUsingDiskStorage = () => {
         // Parse JSON data if exists
         if (req.body?.data) {
           req.body = JSON.parse(req.body.data)
+        } else {
+          req.body = JSON.parse(req.body)
         }
 
         // Process uploaded files

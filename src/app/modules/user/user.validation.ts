@@ -9,7 +9,7 @@ const createUserZodSchema = z.object({
     name: z.string({ required_error: 'Name is required' }).optional(),
     phone: z.string({ required_error: 'Phone is required' }).optional(),
     address: z.string().optional(),
-
+    timezone: z.string().optional(),
     role: z.enum(
       [
         USER_ROLES.ADMIN,
@@ -32,6 +32,7 @@ const updateUserZodSchema = z.object({
     image: z.array(z.string()).optional(),
     location: z.string().optional(),
     bio: z.string().optional(),
+    timezone: z.string().optional(),
     profile: z.string().optional(),
     about: z.string().optional(),
   }),

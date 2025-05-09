@@ -24,7 +24,7 @@ export type IUser = {
   status: string
   verified: boolean
   about: string
-  
+  timezone: string
   address?: string
   password: string
   role: string

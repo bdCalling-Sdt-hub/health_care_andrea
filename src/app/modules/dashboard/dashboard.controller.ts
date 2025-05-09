@@ -50,9 +50,33 @@ const getRevenueCalculation = catchAsync(
   },
 )
 
+const createOrUpdateChart = catchAsync(async (req: Request, res: Response) => {
+  const result = await DashboardServices.createOrChartData(req.body)
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Chart created or updated successfully',
+    data: result,
+  })
+})
+
+const getChartData = catchAsync(async (req: Request, res: Response) => {
+  const result = await DashboardServices.getChartData()
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Chart data retrieved successfully',
+    data: result,
+  })
+})
+
 export const DashboardController = {
   getGeneralStatistics,
   getServiceAnalytics,
   getBookingStatistics,
   getRevenueCalculation,
+  createOrUpdateChart,
+  getChartData,
 }

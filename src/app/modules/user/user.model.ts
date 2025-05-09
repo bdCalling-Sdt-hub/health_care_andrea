@@ -38,6 +38,9 @@ const userSchema = new Schema<IUser, UserModel>(
     profile: {
       type: String,
     },
+    timezone: {
+      type: String,
+    },
     address: {
       type: String,
     },

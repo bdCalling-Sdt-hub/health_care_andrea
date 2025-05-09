@@ -124,7 +124,19 @@ const getUserProfile = async (user: JwtPayload): Promise<IUser | null> => {
 const manageSchedule = async (user: JwtPayload, payload: ISchedule) => {
   payload.user = user.authId
 
-  const formattedSchedule = formatSchedule(payload, payload.timeZone)
+  const isUserExist = await User.findById(user.authId, { timezone: 1 }).lean()
+  if (!isUserExist) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found')
+  }
+
+  if (!isUserExist.timezone) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Before creating schedule, please update your profile and add your time zone.',
+    )
+  }
+
+  const formattedSchedule = formatSchedule(payload, user.timeZone)
   const isScheduleExist = await Schedule.findOne({ user: user.authId })
 
   let schedule
@@ -141,7 +153,7 @@ const manageSchedule = async (user: JwtPayload, payload: ISchedule) => {
     schedule = await Schedule.create([
       {
         user: user.authId,
-        timeZone: payload.timeZone, //add timeZone to sche
+        timeZone: isUserExist.timezone, //add timeZone to sche
         schedule: formattedSchedule,
       },
     ])
@@ -175,13 +187,23 @@ const getAvailableTime = async (
   // Get the day name (Monday, Tuesday, etc.) from the selected date
   const selectedDayName = selectedDate.weekdayLong
 
+  // Convert selected date to UTC with 00 time as start and end time
+  const startOfDay = selectedDate.startOf('day').toUTC()
+  const endOfDay = selectedDate.endOf('day').toUTC()
+
   // Find all bookings for the selected date that are not completed
   // Use date field instead of scheduledAt for the query
   const [bookings, schedules] = await Promise.all([
-    Bookings.find({
-      status: { $nin: [BOOKING_STATUS.COMPLETED] },
-      date: selectedDate.toJSDate(),
-    }).lean(),
+    Bookings.find(
+      {
+        status: { $nin: [BOOKING_STATUS.COMPLETED] },
+        scheduledAt: {
+          $gte: startOfDay.toJSDate(),
+          $lte: endOfDay.toJSDate(),
+        },
+      },
+      { timeCode: 1 },
+    ).lean(),
     Schedule.find({}).lean(),
   ])
 
@@ -218,7 +240,7 @@ const getAvailableTime = async (
         return {
           time: time.time,
           timeCode: time.timeCode,
-          isBooked: bookings.some(
+          isBooked: bookings?.some(
             booking => booking.timeCode === time.timeCode,
           ),
         }

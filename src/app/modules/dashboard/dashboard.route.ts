@@ -30,4 +30,11 @@ router.get(
   DashboardController.getRevenueCalculation,
 )
 
+router.post(
+  '/chart',
+  auth(USER_ROLES.ADMIN),
+  DashboardController.createOrUpdateChart,
+)
+router.get('/chart/', DashboardController.getChartData)
+
 export const DashboardRoutes = router

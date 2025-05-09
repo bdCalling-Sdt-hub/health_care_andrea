@@ -23,11 +23,12 @@ const createBookings = async (
     payload.timezone,
     payload.date,
   )
-
+  console.log(convertedSlotToUtc, '🕧🕧🕧')
   const convertedScheduleDate = new Date(convertedSlotToUtc.isoString)
 
   payload.user = user.authId
   payload.scheduledAt = convertedScheduleDate
+  console.log(payload.scheduledAt, '👍👍👍')
   const result = await Bookings.create(payload)
   if (!result)
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create Bookings')
@@ -49,7 +50,13 @@ const getAllBookings = async () => {
     title: 1,
     image: 1,
   })
-  console.log(result)
+
+  //now convert the scheduledAt to local time
+  result.forEach(booking => {
+    booking.scheduledAt = new Date(
+      convertSessionTimeToLocal(booking.scheduledAt, 'America/New_York'),
+    )
+  })
 
   return result
 }

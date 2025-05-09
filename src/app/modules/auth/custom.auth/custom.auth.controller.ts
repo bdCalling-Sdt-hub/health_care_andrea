@@ -18,7 +18,10 @@ const customLogin = catchAsync(async (req: Request, res: Response) => {
 
 const forgetPassword = catchAsync(async (req: Request, res: Response) => {
   const { email, phone } = req.body
-  const result = await CustomAuthServices.forgetPassword(email, phone)
+  const result = await CustomAuthServices.forgetPassword(
+    email.toLowerCase().trim(),
+    phone,
+  )
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
