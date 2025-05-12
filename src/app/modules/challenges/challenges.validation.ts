@@ -9,6 +9,7 @@ const contentsItemSchema = z.object({
 const createChallengeZodSchema = z.object({
   body: z.object({
     title: z.string(),
+    service: z.string(),
     description: z.string(),
     background: z.string(),
     image: z.array(z.string()),
@@ -19,6 +20,7 @@ const createChallengeZodSchema = z.object({
 const updateChallengeZodSchema = z.object({
   body: z.object({
     title: z.string().optional(),
+    service: z.string().optional(),
     description: z.string().optional(),
     background: z.string().optional(),
     image: z.array(z.string()).optional(),

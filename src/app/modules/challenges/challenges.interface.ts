@@ -9,6 +9,7 @@ export interface ContentsItem {
 export type IChallenges = {
   _id: Types.ObjectId
   title: string
+  service: Types.ObjectId
   description: string
   background: string
   images: string[]

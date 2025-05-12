@@ -1,5 +1,13 @@
 import { Model, Types } from 'mongoose'
 
+export interface IMeetingDetails {
+  meetingId: string
+  password: string
+  joinUrl: string
+  startUrl: string
+  meetingTime: Date
+}
+
 export interface IBookings {
   user: Types.ObjectId
   firstName: string
@@ -23,6 +31,7 @@ export interface IBookings {
   paymentRequired: boolean
   createdAt: Date
   updatedAt: Date
+  meetingDetails?: IMeetingDetails
 }
 
 export type BookingsModel = Model<IBookings>

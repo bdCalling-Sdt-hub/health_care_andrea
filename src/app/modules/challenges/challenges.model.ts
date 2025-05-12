@@ -13,6 +13,7 @@ const contentsItemSchema = new Schema(
 const challengesSchema = new Schema<IChallenges, ChallengesModel>(
   {
     title: { type: String },
+    service: { type: Schema.Types.ObjectId },
     description: { type: String },
     background: { type: String },
     images: { type: [String] },

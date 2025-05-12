@@ -6,9 +6,9 @@ import { JwtPayload } from 'jsonwebtoken'
 import { Types } from 'mongoose'
 
 const getNotifications = (user: JwtPayload) => {
-  const result = Notification.find({ user: user.authId })
-    .populate('receiver', 'name image')
-    .populate('sender', 'name image')
+  const result = Notification.find({ receiver: user.authId })
+    .populate('receiver', 'name profile')
+    .populate('sender', 'name profile')
     .lean()
   return result
 }

@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose'
 import { IBookings, BookingsModel } from './bookings.interface'
 import { BOOKING_STATUS, PAYMENT_METHOD } from '../../../enum/booking'
 
-const bookingsSchema = new Schema<IBookings, BookingsModel>(
+const BookingsSchema = new Schema<IBookings>(
   {
     user: { type: Schema.Types.ObjectId },
     firstName: { type: String },
@@ -39,13 +39,23 @@ const bookingsSchema = new Schema<IBookings, BookingsModel>(
     paymentRequired: { type: Boolean, default: false },
     createdAt: { type: Date },
     updatedAt: { type: Date },
+    meetingDetails: {
+      meetingId: String,
+      password: String,
+      joinUrl: String,
+      startUrl: String,
+      meetingTime: Date,
+    },
   },
   {
     timestamps: true,
+    toJSON: {
+      virtuals: true,
+    },
   },
 )
 
 export const Bookings = model<IBookings, BookingsModel>(
   'Bookings',
-  bookingsSchema,
+  BookingsSchema,
 )

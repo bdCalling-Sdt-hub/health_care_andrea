@@ -11,35 +11,74 @@ import { sendNotification } from '../../../helpers/notificationHelper'
 import { User } from '../user/user.model'
 import { USER_ROLES } from '../../../enum/user'
 import { BOOKING_STATUS, PAYMENT_METHOD } from '../../../enum/booking'
+import { createZoomMeeting } from '../../../helpers/zoomHelper'
 
 const createBookings = async (
   user: JwtPayload,
   payload: IBookings & { time: string; date: string },
 ) => {
   //format the date
-
   const convertedSlotToUtc = convertSessionTimeToUTC(
     payload.time,
     payload.timezone,
     payload.date,
   )
-  console.log(convertedSlotToUtc, '🕧🕧🕧')
+
   const convertedScheduleDate = new Date(convertedSlotToUtc.isoString)
 
   payload.user = user.authId
   payload.scheduledAt = convertedScheduleDate
-  console.log(payload.scheduledAt, '👍👍👍')
+
   const result = await Bookings.create(payload)
   if (!result)
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create Bookings')
 
-  const admin = await User.findOne({ role: USER_ROLES.ADMIN })
+  const [admin, isUserExist] = await Promise.all([
+    User.findOne({ role: USER_ROLES.ADMIN }),
+    User.findById(user.authId),
+  ])
+  if (!isUserExist && !admin) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found')
+  }
+
+  // Create a Zoom meeting for this booking
+  try {
+    // Get user details for meeting topic
+    const userDetails = await User.findById(user.authId)
+
+    // Create meeting topic with user name and service
+    const meetingTopic = `Healthcare Consultation: ${userDetails?.name || 'Patient'} - ${payload.service || 'General Consultation'}`
+
+    // Create Zoom meeting
+    const zoomMeeting = await createZoomMeeting(
+      meetingTopic,
+      result.scheduledAt,
+      60, // 60 minutes duration
+      payload.timezone,
+    )
+
+    await Bookings.findByIdAndUpdate(result._id, {
+      link: zoomMeeting.joinUrl,
+      meetingDetails: {
+        meetingId: zoomMeeting.meetingId,
+        password: zoomMeeting.password,
+        joinUrl: zoomMeeting.joinUrl,
+        startUrl: zoomMeeting.startUrl,
+        meetingTime: zoomMeeting.meetingTime,
+      },
+    })
+  } catch (error) {
+    console.error('Failed to create Zoom meeting:', error)
+    // Continue with booking creation even if Zoom meeting creation fails
+  }
+
+  // Include Zoom meeting link in the notification if available
 
   await sendNotification(
     user.authId,
     admin?._id as unknown as string,
     'New Booking Request',
-    `A new booking request has been made by ${user.name}`,
+    `Hello ${admin?.name}, you have a new meeting request at ${convertSessionTimeToLocal(result.scheduledAt, admin?.timezone!)}, please check your dashboard for more details.`,
   )
 
   return result
@@ -122,6 +161,38 @@ const updateBookings = async (
     )
     notificationTitle = 'Booking Date & Time Changed'
     notificationBody = `Booking date & time has been changed by ${isBookingExist.user}`
+
+    if (isBookingExist.meetingDetails?.meetingId) {
+      try {
+        const userDetails = await User.findById(isBookingExist.user)
+
+        const meetingTopic = `Healthcare Consultation: ${userDetails?.name || 'Patient'} - ${isBookingExist.service || 'General Consultation'}`
+
+        // Create a new Zoom meeting with updated time
+        const zoomMeeting = await createZoomMeeting(
+          meetingTopic,
+          convertedScheduleDate,
+          60, // 60 minutes duration
+          isBookingExist.timezone,
+        )
+
+        // Update the meeting details in the payload
+        payload.link = zoomMeeting.joinUrl
+        payload.meetingDetails = {
+          meetingId: zoomMeeting.meetingId,
+          password: zoomMeeting.password,
+          joinUrl: zoomMeeting.joinUrl,
+          startUrl: zoomMeeting.startUrl,
+          meetingTime: zoomMeeting.meetingTime,
+        }
+
+        // Add meeting info to notification
+        notificationBody += `. A new meeting link has been created. Please check your dashboard for the updated meeting details.`
+      } catch (error) {
+        console.error('Failed to update Zoom meeting:', error)
+        // Continue with booking update even if Zoom meeting update fails
+      }
+    }
   }
 
   if (payload.link) {
