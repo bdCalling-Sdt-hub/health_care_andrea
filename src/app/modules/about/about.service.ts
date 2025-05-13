@@ -8,19 +8,20 @@ const manageAbout = async (payload: IAbout) => {
     type: payload.type,
   })
   if (isExist) {
-    await About.findOneAndUpdate(
+    const result = await About.findOneAndUpdate(
       { type: payload.type },
       { $set: payload },
       {
         new: true,
       },
     )
+    return result
+  } else {
+    const result = await About.create(payload)
+    if (!result)
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create About')
+    return result
   }
-
-  const result = await About.create(payload)
-  if (!result)
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create About')
-  return result
 }
 
 const getAllAbouts = async () => {

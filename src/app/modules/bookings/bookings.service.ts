@@ -6,18 +6,20 @@ import {
   convertSessionTimeToLocal,
   convertSessionTimeToUTC,
 } from '../../../utils/date'
-import { JwtPayload } from 'jsonwebtoken'
+import { Jwt, JwtPayload } from 'jsonwebtoken'
 import { sendNotification } from '../../../helpers/notificationHelper'
 import { User } from '../user/user.model'
 import { USER_ROLES } from '../../../enum/user'
 import { BOOKING_STATUS, PAYMENT_METHOD } from '../../../enum/booking'
 import { createZoomMeeting } from '../../../helpers/zoomHelper'
+import { Service } from '../service/service.model'
+import { emailHelper } from '../../../helpers/emailHelper'
+import { emailTemplate } from '../../../shared/emailTemplate'
 
 const createBookings = async (
   user: JwtPayload,
   payload: IBookings & { time: string; date: string },
 ) => {
-  //format the date
   const convertedSlotToUtc = convertSessionTimeToUTC(
     payload.time,
     payload.timezone,
@@ -25,7 +27,6 @@ const createBookings = async (
   )
 
   const convertedScheduleDate = new Date(convertedSlotToUtc.isoString)
-
   payload.user = user.authId
   payload.scheduledAt = convertedScheduleDate
 
@@ -33,30 +34,39 @@ const createBookings = async (
   if (!result)
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create Bookings')
 
-  const [admin, isUserExist] = await Promise.all([
+  const [admin, service] = await Promise.all([
     User.findOne({ role: USER_ROLES.ADMIN }),
-    User.findById(user.authId),
+    Service.findById(payload.service),
   ])
-  if (!isUserExist && !admin) {
+  if (!admin && !service) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found')
   }
 
-  // Create a Zoom meeting for this booking
   try {
-    // Get user details for meeting topic
-    const userDetails = await User.findById(user.authId)
+    // Define the meeting topic with user details and the service
+    const meetingTopic = `Healthcare Consultation: ${payload?.firstName || payload.lastName} - ${service?.title || 'General Consultation'}`
 
-    // Create meeting topic with user name and service
-    const meetingTopic = `Healthcare Consultation: ${userDetails?.name || 'Patient'} - ${payload.service || 'General Consultation'}`
-
-    // Create Zoom meeting
-    const zoomMeeting = await createZoomMeeting(
-      meetingTopic,
+    // Convert the scheduled time to the admin's local timezone
+    const adminLocalTime = convertSessionTimeToLocal(
       result.scheduledAt,
-      60, // 60 minutes duration
-      payload.timezone,
+      admin?.timezone!,
     )
 
+    console.log(
+      adminLocalTime,
+      '🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧',
+      new Date(adminLocalTime),
+    )
+
+    // Create the Zoom meeting using admin's local time (converted to UTC)
+    const zoomMeeting = await createZoomMeeting(
+      meetingTopic,
+      new Date(adminLocalTime),
+      60, // Duration in minutes
+      admin?.timezone,
+    )
+
+    // Save the Zoom meeting details in the booking
     await Bookings.findByIdAndUpdate(result._id, {
       link: zoomMeeting.joinUrl,
       meetingDetails: {
@@ -67,13 +77,44 @@ const createBookings = async (
         meetingTime: zoomMeeting.meetingTime,
       },
     })
+
+    // Send booking confirmation email with Zoom details
+    const userLocalTime = convertSessionTimeToLocal(
+      result.scheduledAt,
+      payload.timezone,
+    )
+
+    // Format date and time for email
+    const bookingDate = new Date(userLocalTime).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+
+    const bookingTime = new Date(userLocalTime).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
+    // Send email to user
+    const emailData = emailTemplate.bookingConfirmation({
+      email: payload.email,
+      name: `${payload.firstName} ${payload.lastName}`,
+      date: bookingDate,
+      time: bookingTime,
+      service: service?.title || 'Healthcare Consultation',
+      meetingLink: zoomMeeting.joinUrl,
+      meetingPassword: zoomMeeting.password,
+      meetingId: zoomMeeting.meetingId,
+    })
+
+    emailHelper.sendEmail(emailData)
   } catch (error) {
     console.error('Failed to create Zoom meeting:', error)
-    // Continue with booking creation even if Zoom meeting creation fails
   }
 
-  // Include Zoom meeting link in the notification if available
-
+  // Send notification to admin with local time for the admin
   await sendNotification(
     user.authId,
     admin?._id as unknown as string,
@@ -84,16 +125,19 @@ const createBookings = async (
   return result
 }
 
-const getAllBookings = async () => {
-  const result = await Bookings.find().populate('service', {
-    title: 1,
-    image: 1,
-  })
+const getAllBookings = async (user: JwtPayload) => {
+  const [result, isUserExist] = await Promise.all([
+    Bookings.find({}).populate('user', { name: 1, email: 1 }),
+    User.findById(user.authId),
+  ])
+  if (!isUserExist) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found')
+  }
 
   //now convert the scheduledAt to local time
   result.forEach(booking => {
     booking.scheduledAt = new Date(
-      convertSessionTimeToLocal(booking.scheduledAt, 'America/New_York'),
+      convertSessionTimeToLocal(booking.scheduledAt, isUserExist.timezone),
     )
   })
 
@@ -101,10 +145,19 @@ const getAllBookings = async () => {
 }
 
 const getUSerWiseBookings = async (user: JwtPayload) => {
-  const result = await Bookings.find({ user: user.authId }).populate(
-    'service',
-    { title: 1, image: 1 },
-  )
+  const [result, isUserExist] = await Promise.all([
+    Bookings.find({}).populate('user', { name: 1, email: 1 }),
+    User.findById(user.authId),
+  ])
+  if (!isUserExist) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found')
+  }
+  result.forEach(booking => {
+    booking.scheduledAt = new Date(
+      convertSessionTimeToLocal(booking.scheduledAt, isUserExist.timezone),
+    )
+  })
+
   return result
 }
 
@@ -119,9 +172,15 @@ const updateBookings = async (
   payload: Partial<IBookings & { date: string; time: string }>,
 ) => {
   const [isBookingExist, admin] = await Promise.all([
-    Bookings.findById(id).populate<{ user: { name: string } }>('user', {
-      name: 1,
-    }),
+    Bookings.findById(id)
+      .populate<{ user: { name: string; email: string } }>('user', {
+        name: 1,
+        email: 1,
+      })
+      .populate<{ service: { title: string; image: string } }>({
+        path: 'service',
+        select: { title: 1, image: 1 },
+      }),
     User.findOne({ role: USER_ROLES.ADMIN }),
   ])
 
@@ -154,7 +213,30 @@ const updateBookings = async (
       payload.date,
     )
     const convertedScheduleDate = new Date(convertedSlotToUtc.isoString)
-    payload.scheduledAt = convertedScheduleDate
+
+    const updatedBooking = await Bookings.findByIdAndUpdate(
+      id,
+      { $set: { scheduledAt: convertedScheduleDate } },
+      {
+        new: true,
+      },
+    )
+
+    if (!updatedBooking) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update booking')
+    }
+    // Convert the scheduled time to the admin's local timezone
+    const adminLocalTime = convertSessionTimeToLocal(
+      updatedBooking.scheduledAt,
+      admin?.timezone!,
+    )
+
+    console.log(
+      adminLocalTime,
+      '🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧',
+      new Date(adminLocalTime),
+    )
+
     userLocalTime = convertSessionTimeToLocal(
       convertedScheduleDate,
       isBookingExist.timezone,
@@ -164,14 +246,12 @@ const updateBookings = async (
 
     if (isBookingExist.meetingDetails?.meetingId) {
       try {
-        const userDetails = await User.findById(isBookingExist.user)
-
-        const meetingTopic = `Healthcare Consultation: ${userDetails?.name || 'Patient'} - ${isBookingExist.service || 'General Consultation'}`
+        const meetingTopic = `Healthcare Consultation: ${isBookingExist.firstName || isBookingExist.lastName} - ${isBookingExist.service?.title || 'General Consultation'}`
 
         // Create a new Zoom meeting with updated time
         const zoomMeeting = await createZoomMeeting(
           meetingTopic,
-          convertedScheduleDate,
+          new Date(convertedScheduleDate),
           60, // 60 minutes duration
           isBookingExist.timezone,
         )
@@ -188,11 +268,45 @@ const updateBookings = async (
 
         // Add meeting info to notification
         notificationBody += `. A new meeting link has been created. Please check your dashboard for the updated meeting details.`
+
+        // Format date and time for email
+        const bookingDate = new Date(userLocalTime).toLocaleDateString(
+          'en-US',
+          {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          },
+        )
+
+        const bookingTime = new Date(userLocalTime).toLocaleTimeString(
+          'en-US',
+          {
+            hour: '2-digit',
+            minute: '2-digit',
+          },
+        )
+
+        // Send rescheduling email to user
+        const emailData = emailTemplate.bookingRescheduled({
+          email: isBookingExist?.email || isBookingExist.email,
+          name: `${isBookingExist.firstName} ${isBookingExist.lastName}`,
+          date: bookingDate,
+          time: bookingTime,
+          service: isBookingExist.service?.title || 'Healthcare Consultation',
+          meetingLink: zoomMeeting.joinUrl,
+          meetingPassword: zoomMeeting.password,
+          meetingId: zoomMeeting.meetingId,
+        })
+
+        emailHelper.sendEmail(emailData)
       } catch (error) {
         console.error('Failed to update Zoom meeting:', error)
         // Continue with booking update even if Zoom meeting update fails
       }
     }
+    return updatedBooking
   }
 
   if (payload.link) {
@@ -224,7 +338,7 @@ const updateBookings = async (
   )
 
   //send notification to user
-  sendNotification(
+  await sendNotification(
     admin?._id as unknown as string,
     isBookingExist?.user as unknown as string,
     notificationTitle,

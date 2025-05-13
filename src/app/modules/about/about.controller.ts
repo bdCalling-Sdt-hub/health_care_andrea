@@ -5,9 +5,11 @@ import sendResponse from '../../../shared/sendResponse'
 import { StatusCodes } from 'http-status-codes'
 
 const createAbout = catchAsync(async (req: Request, res: Response) => {
-  const { aboutData } = req.body
-
-  const result = await AboutServices.manageAbout(aboutData)
+  const { image, ...restData } = req.body
+  if (image) {
+    restData.images = image
+  }
+  const result = await AboutServices.manageAbout(restData)
 
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,

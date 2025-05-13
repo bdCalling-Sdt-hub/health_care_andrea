@@ -66,10 +66,8 @@ export const createZoomMeeting = async (
   try {
     const token = await getZoomToken()
 
-    // Format date to ISO string (YYYY-MM-DDThh:mm:ss)
-    console.log(startTime)
-    const formattedStartTime = startTime.toISOString()
-    console.log(formattedStartTime)
+    const formattedStartTime = startTime
+
     const response = await axios.post(
       `${ZOOM_API_BASE_URL}/users/me/meetings`,
       {

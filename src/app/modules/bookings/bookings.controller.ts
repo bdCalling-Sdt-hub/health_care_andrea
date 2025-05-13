@@ -46,7 +46,7 @@ const getSingleBookings = catchAsync(async (req: Request, res: Response) => {
 })
 
 const getAllBookings = catchAsync(async (req: Request, res: Response) => {
-  const result = await BookingsServices.getAllBookings()
+  const result = await BookingsServices.getAllBookings(req.user!)
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,

@@ -62,6 +62,8 @@ export function convertScheduleToLocal(
   scheduleData: ISchedule,
   userTimeZone: string,
 ) {
+  console.log('Converting schedule to timezone:', userTimeZone)
+  console.log('Original schedule timezone:', scheduleData.timeZone)
   return scheduleData.schedule.map(daySchedule => ({
     ...daySchedule,
     times: daySchedule.times.map(timeSlot => {

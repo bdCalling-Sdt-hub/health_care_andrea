@@ -136,7 +136,8 @@ const manageSchedule = async (user: JwtPayload, payload: ISchedule) => {
     )
   }
 
-  const formattedSchedule = formatSchedule(payload, user.timeZone)
+  const formattedSchedule = formatSchedule(payload, isUserExist.timezone)
+  payload.timeZone = isUserExist.timezone
   const isScheduleExist = await Schedule.findOne({ user: user.authId })
 
   let schedule
@@ -165,7 +166,10 @@ const manageSchedule = async (user: JwtPayload, payload: ISchedule) => {
 const getSchedule = async (user: JwtPayload) => {
   const schedule = await Schedule.findOne({ user: user.authId }).lean()
   if (!schedule) return []
-  const localTimeSchedule = convertScheduleToLocal(schedule, schedule?.timeZone)
+
+  // Use the timezone from the user's profile instead of hardcoding
+
+  const localTimeSchedule = convertScheduleToLocal(schedule, schedule.timeZone)
   return localTimeSchedule
 }
 
@@ -184,7 +188,6 @@ const getAvailableTime = async (
     )
   }
 
-  // Get the day name (Monday, Tuesday, etc.) from the selected date
   const selectedDayName = selectedDate.weekdayLong
 
   // Convert selected date to UTC with 00 time as start and end time
@@ -204,21 +207,15 @@ const getAvailableTime = async (
       },
       { timeCode: 1 },
     ).lean(),
-    Schedule.find({}).lean(),
+    Schedule.findOne({}).lean(),
   ])
 
-  if (!schedules || schedules.length === 0) {
+  if (!schedules) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Schedule not found')
   }
 
-  const localTimeSchedule = convertScheduleToLocal(
-    {
-      user: schedules[0].user,
-      timeZone: schedules[0].timeZone,
-      schedule: schedules[0].schedule,
-    },
-    timezone,
-  )
+  // Use the requested timezone parameter instead of hardcoding
+  const localTimeSchedule = convertScheduleToLocal(schedules, timezone)
 
   // Filter to only include the selected day
   const selectedDaySchedule = localTimeSchedule.filter(
@@ -229,14 +226,18 @@ const getAvailableTime = async (
     return [] // No schedule available for the selected day
   }
 
+  bookings.map(booking => {
+    console.log(booking.timeCode)
+  })
   // Map the slots for the selected day only
   const slots = selectedDaySchedule.map(slot => {
     return {
-      user: schedules[0].user,
+      user: schedules.user,
       day: slot.day,
       date: date,
       timezone: timezone,
       times: slot.times.map(time => {
+        console.log(time)
         return {
           time: time.time,
           timeCode: time.timeCode,

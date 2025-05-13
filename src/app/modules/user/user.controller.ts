@@ -65,7 +65,7 @@ const getAvailableTime = catchAsync(async (req: Request, res: Response) => {
   const result = await UserServices.getAvailableTime(
     req.user!,
     req.params.date as string,
-    req.query.timezone as string,
+    req.query.timeZone as string,
   )
   sendResponse(res, {
     statusCode: StatusCodes.OK,

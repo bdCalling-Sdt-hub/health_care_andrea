@@ -7,6 +7,7 @@ export interface DescriptionsItem {
 
 export type IAbout = {
   _id: Types.ObjectId
+  title: string
   descriptions: DescriptionsItem[]
   images: string[]
   type: string

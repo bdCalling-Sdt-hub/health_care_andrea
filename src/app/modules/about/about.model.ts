@@ -11,6 +11,7 @@ const descriptionsItemSchema = new Schema(
 
 const aboutSchema = new Schema<IAbout, AboutModel>(
   {
+    title: { type: String },
     descriptions: [descriptionsItemSchema],
     images: { type: [String] },
     type: { type: String, enum: ['mission', 'vision', 'values'] },
