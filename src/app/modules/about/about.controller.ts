@@ -6,6 +6,7 @@ import { StatusCodes } from 'http-status-codes'
 
 const createAbout = catchAsync(async (req: Request, res: Response) => {
   const { image, ...restData } = req.body
+
   if (image) {
     restData.images = image
   }
