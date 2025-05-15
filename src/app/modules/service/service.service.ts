@@ -5,6 +5,7 @@ import { Service } from './service.model'
 import { Types } from 'mongoose'
 import fs from 'fs'
 import { removeUploadedFiles } from '../../../utils/deleteUploadedFile'
+import { Challenges } from '../challenges/challenges.model'
 
 const createService = async (payload: IService): Promise<IService> => {
   const result = Service.create(payload)
@@ -37,10 +38,19 @@ const deleteService = async (id: string): Promise<IService | null> => {
 }
 
 const getService = async (id: string): Promise<IService | null> => {
-  const result = await Service.findById(new Types.ObjectId(id))
+  const [result, challenges] = await Promise.all([
+    Service.findById(new Types.ObjectId(id)).lean(),
+    Challenges.find({ serviceId: new Types.ObjectId(id) }).lean(),
+  ])
+
   if (!result)
     throw new ApiError(StatusCodes.NOT_FOUND, 'Requested service not found.')
-  return result
+  if (result) {
+  }
+  return {
+    ...result,
+    ...challenges,
+  }
 }
 
 const getAllServices = async (): Promise<IService[]> => {

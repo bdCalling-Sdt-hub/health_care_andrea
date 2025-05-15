@@ -16,6 +16,7 @@ import { DashboardRoutes } from '../app/modules/dashboard/dashboard.route'
 import { PaymentRoutes } from '../app/modules/payment/payment.route'
 import { ReviewRoutes } from '../app/modules/review/review.route'
 import { AboutRoutes } from '../app/modules/about/about.route'
+import { fileRoutes } from '../app/modules/file/file.route'
 
 const router = express.Router()
 
@@ -42,6 +43,7 @@ const apiRoutes: { path: string; route: Router }[] = [
   { path: '/public', route: PublicRoutes },
 
   { path: '/review', route: ReviewRoutes },
+  { path: '/file', route: fileRoutes },
 
   { path: '/about', route: AboutRoutes },
 ]
