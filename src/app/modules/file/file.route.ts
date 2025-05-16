@@ -45,6 +45,11 @@ router.get(
   FileController.downloadFile,
 )
 router.get(
+  '/user/:userId',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  FileController.getFileByUser,
+)
+router.get(
   '/metadata/:fileId',
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   FileController.getFileMetadata,

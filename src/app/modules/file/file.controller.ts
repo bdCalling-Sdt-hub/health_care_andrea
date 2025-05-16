@@ -112,12 +112,48 @@ const downloadFile = async (req: Request, res: Response): Promise<void> => {
   }
 }
 
+const getFileByUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params
+
+    // Find file metadata in MongoDB
+    const fileRecord = await EncryptedFile.find(
+      { uploadedBy: userId },
+      { accessLogs: 0 }, // exclude accessLogs
+    )
+      .select('-encryptedPath -encryptedName') // Don't expose sensitive paths
+      .populate('uploadedBy', 'name email profile')
+
+    if (!fileRecord) {
+      sendResponse(res, {
+        statusCode: StatusCodes.NOT_FOUND,
+        success: false,
+        message: 'File not found',
+      })
+      return
+    }
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'File metadata retrieved successfully',
+      data: fileRecord,
+    })
+  } catch (error) {
+    console.error('Error in file download:', error)
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: 'Failed to download file',
+    })
+  }
+}
+
 const getFileMetadata = async (req: Request, res: Response): Promise<void> => {
   try {
     const { fileId } = req.params
 
     // Find file metadata in MongoDB
-    const fileRecord = await EncryptedFile.findById(fileId)
+
+    const fileRecord = await EncryptedFile.findById(fileId, { accessLogs: 0 })
+
       .select('-encryptedPath -encryptedName') // Don't expose sensitive paths
       .populate('uploadedBy', 'name email') // Assuming your User model has these fields
 
@@ -144,4 +180,5 @@ export const FileController = {
   uploadFile,
   downloadFile,
   getFileMetadata,
+  getFileByUser,
 }
