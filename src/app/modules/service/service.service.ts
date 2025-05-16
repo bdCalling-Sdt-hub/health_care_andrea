@@ -37,7 +37,7 @@ const deleteService = async (id: string): Promise<IService | null> => {
   return result
 }
 
-const getService = async (id: string): Promise<IService | null> => {
+const getService = async (id: string) => {
   const [result, challenges] = await Promise.all([
     Service.findById(new Types.ObjectId(id)).lean(),
     Challenges.find({ service: new Types.ObjectId(id) }).lean(),
@@ -47,8 +47,8 @@ const getService = async (id: string): Promise<IService | null> => {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Requested service not found.')
 
   return {
-    ...result,
-    ...challenges,
+    result: result,
+    challenges: challenges,
   }
 }
 
