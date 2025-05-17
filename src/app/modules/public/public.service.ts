@@ -136,16 +136,9 @@ const createOrUpdatePublicInformation = async (payload: IPublicInformation) => {
 }
 
 const getPublicInformation = async () => {
-  try {
-    const result = await PublicInformation.findOne({}).lean()
+  const result = await PublicInformation.findOne({}).lean()
 
-    return result
-  } catch (error) {
-    throw new ApiError(
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      'Failed to fetch public information',
-    )
-  }
+  return result
 }
 
 export const PublicServices = {
