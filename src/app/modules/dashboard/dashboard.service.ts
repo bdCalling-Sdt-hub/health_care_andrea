@@ -219,13 +219,10 @@ const getRevenueCalculation = async () => {
 const createOrChartData = async (data: any[]) => {
   const isExist = await Chart.findOne({})
   if (isExist) {
-    const result = Chart.updateOne(
-      { _id: isExist._id },
-      { $set: { data: data } },
-    )
+    const result = Chart.updateOne({ _id: isExist._id }, { $set: { ...data } })
     return result
   }
-  const result = Chart.create({ data: data })
+  const result = Chart.create(data)
 
   return result
 }
@@ -233,8 +230,71 @@ const createOrChartData = async (data: any[]) => {
 const getChartData = async () => {
   const result = await Chart.find({}).lean()
 
-  //now get best services based on booking for services
-  return result
+  // Get top 5 services based on bookings
+  const topServices = await Bookings.aggregate([
+    {
+      $group: {
+        _id: '$service',
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $lookup: {
+        from: 'services',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'serviceDetails',
+      },
+    },
+    {
+      $unwind: {
+        path: '$serviceDetails',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        serviceName: '$serviceDetails.title',
+        count: 1,
+      },
+    },
+    {
+      $sort: { count: -1 },
+    },
+    {
+      $limit: 5,
+    },
+  ])
+
+  // Calculate total bookings for percentage calculation
+  const totalBookings = await Bookings.countDocuments()
+
+  let topServicesWithPercentage = []
+
+  if (totalBookings > 0) {
+    // Real data with percentages
+    topServicesWithPercentage = topServices.map(service => ({
+      _id: service._id,
+      serviceName: service.serviceName,
+      count: service.count,
+      percentage: ((service.count / totalBookings) * 100).toFixed(2),
+    }))
+  } else {
+    // Dummy data if no bookings exist
+    topServicesWithPercentage = [
+      { serviceName: 'General Consultation', percentage: '35.00' },
+      { serviceName: 'Specialized Treatment', percentage: '25.00' },
+      { serviceName: 'Diagnostic Services', percentage: '20.00' },
+      { serviceName: 'Preventive Care', percentage: '15.00' },
+      { serviceName: 'Follow-up Visit', percentage: '5.00' },
+    ]
+  }
+
+  return {
+    chartData: result,
+    topServices: topServicesWithPercentage,
+  }
 }
 
 export const DashboardServices = {

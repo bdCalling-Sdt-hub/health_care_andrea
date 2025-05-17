@@ -15,3 +15,20 @@ export interface IContact {
   updatedAt?: Date
 }
 export type PublicModel = Model<IPublic>
+
+export interface IPublicInformation {
+  contact: string
+  email: string
+  facebook: string
+  instagram: string
+  x: string
+  youtube: string
+  linkedin: string
+  footerDescription: string
+  businessStartDay: string
+  businessEndDay: string
+  businessStartTime: string
+  businessEndTime: string
+}
+
+export type PublicInformationModel = Model<IPublicInformation>

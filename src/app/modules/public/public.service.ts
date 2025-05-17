@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
 import ApiError from '../../../errors/ApiError'
-import { IContact, IPublic } from './public.interface'
-import { Public } from './public.model'
+import { IContact, IPublic, IPublicInformation } from './public.interface'
+import { Public, PublicInformation } from './public.model'
 
 import { User } from '../user/user.model'
 import { emailHelper } from '../../../helpers/emailHelper'
@@ -104,9 +104,55 @@ const createContact = async (payload: IContact) => {
   }
 }
 
+const createOrUpdatePublicInformation = async (payload: IPublicInformation) => {
+  try {
+    const isExist = await PublicInformation.findOne({})
+
+    if (isExist) {
+      console.log(payload)
+
+      const result = await PublicInformation.findByIdAndUpdate(
+        isExist._id,
+        { $set: { ...payload } },
+        { new: true },
+      )
+      return result
+    } else {
+      const result = await PublicInformation.create(payload)
+      if (!result) {
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          'Failed to create public information',
+        )
+      }
+      return result
+    }
+  } catch (error) {
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'Failed to create or update public information',
+    )
+  }
+}
+
+const getPublicInformation = async () => {
+  try {
+    const result = await PublicInformation.findOne({}).lean()
+
+    return result
+  } catch (error) {
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'Failed to fetch public information',
+    )
+  }
+}
+
 export const PublicServices = {
   createPublic,
   getAllPublics,
   deletePublic,
   createContact,
+  createOrUpdatePublicInformation,
+  getPublicInformation,
 }

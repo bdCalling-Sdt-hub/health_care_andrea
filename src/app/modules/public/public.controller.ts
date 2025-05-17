@@ -52,9 +52,37 @@ const createContact = catchAsync(async (req: Request, res: Response) => {
   })
 })
 
+const createOrUpdatePublicInformation = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await PublicServices.createOrUpdatePublicInformation(
+      req.body,
+    )
+
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Public information created or updated successfully',
+      data: result,
+    })
+  },
+)
+
+const getPublicInformation = catchAsync(async (req: Request, res: Response) => {
+  const result = await PublicServices.getPublicInformation()
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Public information retrieved successfully',
+    data: result,
+  })
+})
+
 export const PublicController = {
   createPublic,
   getAllPublics,
   deletePublic,
   createContact,
+  createOrUpdatePublicInformation,
+  getPublicInformation,
 }

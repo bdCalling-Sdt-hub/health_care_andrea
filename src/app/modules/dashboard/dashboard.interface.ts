@@ -32,6 +32,8 @@ export interface IChartData {
 }
 export interface IChart {
   _id: string
+  title: string
+  description: string
   data: IChartData[]
   createdAt: Date
   updatedAt: Date
@@ -41,8 +43,17 @@ export type ChartModel = Model<IChart>
 
 const chartSchema = new Schema<IChart>(
   {
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
     data: [
       {
+        _id: false,
         month: String,
         value: Number,
       },

@@ -103,7 +103,9 @@ const resetPassword = async (resetToken: string, payload: IResetPassword) => {
     )
   }
 
+  //check resetPassword is true or nul
   const { authentication } = isUserExist
+
   if (!authentication?.resetPassword) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
@@ -111,7 +113,7 @@ const resetPassword = async (resetToken: string, payload: IResetPassword) => {
     )
   }
 
-  const isTokenValid = authentication?.expiresAt! > new Date()
+  const isTokenValid = isTokenExist?.expireAt! > new Date()
   if (!isTokenValid) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
@@ -119,9 +121,9 @@ const resetPassword = async (resetToken: string, payload: IResetPassword) => {
     )
   }
 
-  const hashPassword = bcrypt.hash(
+  const hashPassword = await bcrypt.hash(
     newPassword,
-    config.bcrypt_salt_rounds as string,
+    Number(config.bcrypt_salt_rounds),
   )
   const updatedUserData = {
     password: hashPassword,
@@ -158,6 +160,7 @@ const verifyAccount = async (
   })
     .select('+authentication')
     .lean()
+  console.log(isUserExist)
   if (!isUserExist) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
@@ -208,6 +211,7 @@ const verifyAccount = async (
     const resetToken = await Token.create({
       user: isUserExist._id,
       token,
+      expireAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
     })
     returnable.token = resetToken.token
     returnable.message =
