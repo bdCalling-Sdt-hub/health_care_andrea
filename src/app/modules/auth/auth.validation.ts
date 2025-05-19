@@ -119,6 +119,12 @@ const changePasswordZodSchema = z.object({
     }),
 })
 
+const deleteAccountZodSchema = z.object({
+  body: z.object({
+    password: z.string().min(8, { message: 'Password is required' }),
+  }),
+})
+
 export const AuthValidations = {
   verifyEmailOrPhoneOtpZodSchema,
   forgetPasswordZodSchema,
@@ -127,4 +133,5 @@ export const AuthValidations = {
   verifyAccountZodSchema,
   resendOtpZodSchema,
   changePasswordZodSchema,
+  deleteAccountZodSchema,
 }

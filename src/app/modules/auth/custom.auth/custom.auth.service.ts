@@ -337,28 +337,6 @@ const resendOtpToPhoneOrEmail = async (
   }
 }
 
-const deleteAccount = async (user: JwtPayload) => {
-  const { authId } = user
-  const isUserExist = await User.findById(authId)
-
-  if (!isUserExist) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Requested user not found.')
-  }
-
-  if (isUserExist.status === USER_STATUS.DELETED) {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      'Requested user is already deleted.',
-    )
-  }
-
-  const deletedData = await User.findByIdAndUpdate(authId, {
-    $set: { status: USER_STATUS.DELETED },
-  })
-
-  return 'Account deleted successfully.'
-}
-
 const resendOtp = async (email?: string, phone?: string) => {
   const query = email ? { email: email } : { phone: phone }
   const isUserExist = await User.findOne({
@@ -447,6 +425,37 @@ const changePassword = async (
   return { message: 'Password changed successfully' }
 }
 
+const deleteAccount = async (user: JwtPayload, password: string) => {
+  const { authId } = user
+  const isUserExist = await User.findById(authId).select('+password').lean()
+
+  if (!isUserExist) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Requested user not found.')
+  }
+
+  if (isUserExist.status === USER_STATUS.DELETED) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Requested user is already deleted.',
+    )
+  }
+
+  const isPasswordMatch = await bcrypt.compare(password, isUserExist.password)
+
+  if (!isPasswordMatch) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Password does not match. Please try again with correct password.',
+    )
+  }
+
+  const deletedData = await User.findByIdAndUpdate(authId, {
+    $set: { status: USER_STATUS.DELETED },
+  })
+
+  return 'Account deleted successfully.'
+}
+
 export const CustomAuthServices = {
   forgetPassword,
   resetPassword,
@@ -455,7 +464,7 @@ export const CustomAuthServices = {
   getRefreshToken,
   socialLogin,
   resendOtpToPhoneOrEmail,
-  deleteAccount,
   resendOtp,
   changePassword,
+  deleteAccount,
 }

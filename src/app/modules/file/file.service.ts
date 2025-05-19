@@ -1,7 +1,6 @@
 import crypto from 'crypto'
 import fs from 'fs-extra'
 import path from 'path'
-import { promisify } from 'util'
 
 // Environment variables
 const ENCRYPTION_KEY = process.env.FILE_ENCRYPTION_KEY || ''
