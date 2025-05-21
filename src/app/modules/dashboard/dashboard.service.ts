@@ -5,7 +5,7 @@ import { User } from '../user/user.model'
 import { BOOKING_STATUS } from '../../../enum/booking'
 import mongoose from 'mongoose'
 import { USER_ROLES } from '../../../enum/user'
-import { Chart } from './dashboard.interface'
+import { Chart, IChart } from './dashboard.interface'
 
 // General statistics
 const getGeneralStatistics = async () => {
@@ -216,8 +216,8 @@ const getRevenueCalculation = async () => {
   }
 }
 
-const createOrChartData = async (data: any[], type: string) => {
-  const isExist = await Chart.findOne({ type: data })
+const createOrChartData = async (data: IChart) => {
+  const isExist = await Chart.findOne({ type: data.type }).lean()
   if (isExist) {
     const result = Chart.updateOne({ _id: isExist._id }, { $set: { ...data } })
     return result
