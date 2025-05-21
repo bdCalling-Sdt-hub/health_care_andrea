@@ -27,7 +27,7 @@ export interface IMonthlyRevenue {
 }
 
 export interface IChartData {
-  month: string
+  name: string
   value: number
 }
 export interface IChart {
@@ -35,6 +35,7 @@ export interface IChart {
   title: string
   description: string
   data: IChartData[]
+  type: string
   createdAt: Date
   updatedAt: Date
 }
@@ -51,10 +52,15 @@ const chartSchema = new Schema<IChart>(
       type: String,
       required: true,
     },
+    type: {
+      type: String,
+      enum: ['graph', 'bar', 'pie'],
+      required: true,
+    },
     data: [
       {
         _id: false,
-        month: String,
+        name: String,
         value: Number,
       },
     ],

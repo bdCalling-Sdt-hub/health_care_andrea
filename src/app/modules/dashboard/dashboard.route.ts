@@ -31,7 +31,7 @@ router.get(
 )
 
 router.post(
-  '/chart',
+  '/chart/:type',
   auth(USER_ROLES.ADMIN),
   DashboardController.createOrUpdateChart,
 )

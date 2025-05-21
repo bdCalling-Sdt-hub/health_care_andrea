@@ -51,7 +51,10 @@ const getRevenueCalculation = catchAsync(
 )
 
 const createOrUpdateChart = catchAsync(async (req: Request, res: Response) => {
-  const result = await DashboardServices.createOrChartData(req.body)
+  const result = await DashboardServices.createOrChartData(
+    req.body,
+    req.params.type,
+  )
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
