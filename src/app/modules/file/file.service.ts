@@ -14,21 +14,19 @@ import ApiError from '../../../errors/ApiError'
 import { StatusCodes } from 'http-status-codes'
 
 // Environment variables
-const ENCRYPTION_KEY = config.encryption.secret_key
-const ENCRYPTION_IV = config.encryption.iv
+const ENCRYPTION_KEY = config.encryption.secret_key!
+const ENCRYPTION_IV = config.encryption.iv!
 
 // Ensure the encryption key and IV are properly set
 if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 64) {
-  throw new ApiError(
-    StatusCodes.BAD_REQUEST,
-    'Invalid encryption key. Must be a 32-byte (64 hex characters) string',
+  logger.error(
+    'Invalid encryption key or IV. Ensure they are both 64 characters long.',
   )
 }
 
 if (!ENCRYPTION_IV || ENCRYPTION_IV.length !== 32) {
-  throw new ApiError(
-    StatusCodes.BAD_REQUEST,
-    'Invalid encryption IV. Must be a 16-byte (32 hex characters) string',
+  logger.error(
+    'Invalid encryption key or IV. Ensure they are both 32 characters long.',
   )
 }
 
@@ -39,12 +37,18 @@ const iv = Buffer.from(ENCRYPTION_IV, 'hex')
 // Initialize S3 client
 const s3Client = new S3Client({
   region: config.aws.region,
+
+  credentials: {
+    accessKeyId: config.aws.access_key_id!,
+    secretAccessKey: config.aws.secret_access_key!,
+  },
 })
 
 const encryptAndUploadFile = async (
   sourcePath: string,
 ): Promise<{
   s3Key: string
+
   originalName: string
   encryptionKeyId: string
   s3Bucket: string
