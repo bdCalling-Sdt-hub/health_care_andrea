@@ -20,6 +20,10 @@ export default {
     region: process.env.AWS_REGION,
     bucket_name: process.env.AWS_BUCKET_NAME,
   },
+  encryption: {
+    secret_key: process.env.FILE_ENCRYPTION_KEY,
+    iv: process.env.FILE_ENCRYPTION_IV,
+  },
   jwt: {
     jwt_secret: process.env.JWT_SECRET,
     jwt_expire_in: process.env.JWT_EXPIRE_IN,

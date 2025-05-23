@@ -29,9 +29,25 @@ export const fileAndBodyProcessor = () => {
   ) => {
     try {
       const allowedTypes = {
-        image: ['image/jpeg', 'image/png', 'image/jpg'],
-        media: ['video/mp4', 'audio/mpeg'],
-        doc: ['application/pdf'],
+        image: [
+          'image/jpeg',
+          'image/png',
+          'image/jpg',
+          'image/webp',
+          'image/gif',
+        ],
+        media: ['video/mp4', 'audio/mpeg', 'video/webm', 'audio/wav'],
+        doc: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+          'application/vnd.ms-powerpoint',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+          'text/plain',
+          'text/csv',
+        ],
       }
 
       const fieldType = file.fieldname as IFolderName
@@ -58,7 +74,7 @@ export const fileAndBodyProcessor = () => {
     storage,
     fileFilter,
     limits: {
-      fileSize: 10 * 1024 * 1024,
+      fileSize: 50 * 1024 * 1024, // 50MB limit
       files: 10,
     },
   }).fields(uploadFields)
@@ -101,6 +117,8 @@ export const fileAndBodyProcessor = () => {
                   // Preserve original format
                   if (file.mimetype === 'image/png') {
                     sharpInstance = sharpInstance.png({ quality: 80 })
+                  } else if (file.mimetype === 'image/webp') {
+                    sharpInstance = sharpInstance.webp({ quality: 80 })
                   } else {
                     sharpInstance = sharpInstance.jpeg({ quality: 80 })
                   }

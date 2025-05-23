@@ -3,9 +3,10 @@ import { StatusCodes } from 'http-status-codes'
 import path from 'path'
 import fs from 'fs-extra'
 import { FileService } from './file.service'
-import EncryptedFile from './file.encryption'
+import EncryptedFile from './file.model'
 import sendResponse from '../../../shared/sendResponse'
 import { JwtPayload } from 'jsonwebtoken'
+import { IFileUploadResponse } from './file.interface'
 
 const uploadFile = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -22,27 +23,38 @@ const uploadFile = async (req: Request, res: Response): Promise<void> => {
     // Get file details from multer
     const { path: filePath, originalname, mimetype, size } = req.file
 
-    // Encrypt the file
-    const { encryptedPath, originalName, encryptedName } =
-      await FileService.encryptFile(filePath)
+    // Encrypt and upload the file to S3
+    const { s3Key, originalName, encryptionKeyId, s3Bucket } =
+      await FileService.encryptAndUploadFile(filePath)
     const { authId } = req.user as JwtPayload
 
     // Create file metadata in MongoDB
     const fileRecord = await EncryptedFile.create({
       originalName,
-      encryptedPath,
-      encryptedName,
+      s3Key,
+      s3Bucket,
+      encryptionKeyId,
       mimeType: mimetype,
       size,
-      uploadedBy: authId, // Assuming req.user is set by your auth middleware
+      uploadedBy: authId,
       uploadTimestamp: new Date(),
       accessLogs: [], // Empty on creation
     })
+
+    const response: IFileUploadResponse = {
+      fileId: fileRecord._id?.toString() ?? '',
+      originalName: fileRecord.originalName,
+      mimeType: fileRecord.mimeType,
+      size: fileRecord.size,
+      uploadedBy: fileRecord.uploadedBy.toString(),
+      uploadTimestamp: fileRecord.uploadTimestamp,
+    }
 
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
       message: 'File uploaded and encrypted successfully',
+      data: response,
     })
   } catch (error) {
     console.error('Error in file upload:', error)
@@ -55,6 +67,7 @@ const uploadFile = async (req: Request, res: Response): Promise<void> => {
 const downloadFile = async (req: Request, res: Response): Promise<void> => {
   try {
     const { fileId } = req.params
+    const { authId } = req.user as JwtPayload
 
     // Find file metadata in MongoDB
     const fileRecord = await EncryptedFile.findById(fileId)
@@ -68,28 +81,33 @@ const downloadFile = async (req: Request, res: Response): Promise<void> => {
       return
     }
 
-    // Check if encrypted file exists
-    if (!(await fs.pathExists(fileRecord.encryptedPath))) {
-      sendResponse(res, {
-        statusCode: StatusCodes.NOT_FOUND,
-        success: false,
-        message: 'Encrypted file not found',
-      })
-      return
+    // Check if user is authorized to download the file
+    // Only the uploader or admin can download
+    if (fileRecord.uploadedBy.toString() !== authId.toString()) {
+      // Check if user is admin (you'll need to implement this check)
+      const isAdmin = req.user && (req.user as any).role === 'admin'
+      if (!isAdmin) {
+        sendResponse(res, {
+          statusCode: StatusCodes.FORBIDDEN,
+          success: false,
+          message: 'You are not authorized to access this file',
+        })
+        return
+      }
     }
 
-    // Decrypt the file to a temporary location
-    const tempFilePath = await FileService.decryptFile(
-      fileRecord.encryptedPath,
+    // Download and decrypt the file from S3
+    const tempFilePath = await FileService.downloadAndDecryptFile(
+      fileRecord.s3Key,
+      fileRecord.s3Bucket,
       fileRecord.originalName,
     )
 
-    const { authId } = req.user as JwtPayload
     // Log the access
     fileRecord.accessLogs.push({
       timestamp: new Date(),
       action: 'download',
-      userId: authId, // Assuming req.user is set by your auth middleware
+      userId: authId,
       userIp: req.ip,
     })
 
@@ -115,33 +133,51 @@ const downloadFile = async (req: Request, res: Response): Promise<void> => {
 const getFileByUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params
+    const { authId } = req.user as JwtPayload
+
+    // Check if user is authorized to view these files
+    // Users can only view their own files unless they're an admin
+    if (userId !== authId) {
+      // Check if user is admin (you'll need to implement this check)
+      const isAdmin = req.user && (req.user as any).role === 'admin'
+      if (!isAdmin) {
+        sendResponse(res, {
+          statusCode: StatusCodes.FORBIDDEN,
+          success: false,
+          message: 'You are not authorized to view these files',
+        })
+        return
+      }
+    }
 
     // Find file metadata in MongoDB
-    const fileRecord = await EncryptedFile.find(
+    const fileRecords = await EncryptedFile.find(
       { uploadedBy: userId },
       { accessLogs: 0 }, // exclude accessLogs
     )
-      .select('-encryptedPath -encryptedName') // Don't expose sensitive paths
+      .select('-s3Key -encryptionKeyId') // Don't expose sensitive paths
       .populate('uploadedBy', 'name email profile')
 
-    if (!fileRecord) {
+    if (!fileRecords || fileRecords.length === 0) {
       sendResponse(res, {
-        statusCode: StatusCodes.NOT_FOUND,
-        success: false,
-        message: 'File not found',
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'No files found for this user',
+        data: [],
       })
       return
     }
+
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
       message: 'File metadata retrieved successfully',
-      data: fileRecord,
+      data: fileRecords,
     })
   } catch (error) {
-    console.error('Error in file download:', error)
+    console.error('Error retrieving files:', error)
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      error: 'Failed to download file',
+      error: 'Failed to retrieve files',
     })
   }
 }
@@ -149,17 +185,30 @@ const getFileByUser = async (req: Request, res: Response): Promise<void> => {
 const getFileMetadata = async (req: Request, res: Response): Promise<void> => {
   try {
     const { fileId } = req.params
+    const { authId } = req.user as JwtPayload
 
     // Find file metadata in MongoDB
-
     const fileRecord = await EncryptedFile.findById(fileId, { accessLogs: 0 })
-
-      .select('-encryptedPath -encryptedName') // Don't expose sensitive paths
+      .select('-s3Key -encryptionKeyId') // Don't expose sensitive paths
       .populate('uploadedBy', 'name email') // Assuming your User model has these fields
 
     if (!fileRecord) {
       res.status(StatusCodes.NOT_FOUND).json({ error: 'File not found' })
       return
+    }
+
+    // Check if user is authorized to view this file's metadata
+    if (fileRecord.uploadedBy._id.toString() !== authId) {
+      // Check if user is admin
+      const isAdmin = req.user && (req.user as any).role === 'admin'
+      if (!isAdmin) {
+        sendResponse(res, {
+          statusCode: StatusCodes.FORBIDDEN,
+          success: false,
+          message: 'You are not authorized to view this file',
+        })
+        return
+      }
     }
 
     sendResponse(res, {

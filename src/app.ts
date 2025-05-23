@@ -27,7 +27,7 @@ router.post(
   PaymentController.handleWebhook,
 )
 
-app.use(express.json())
+app.use(express.json({ limit: '1mb' }))
 app.use(passport.initialize())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())

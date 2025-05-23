@@ -6,13 +6,14 @@ import fs from 'fs-extra'
 import auth from '../../middleware/auth'
 import { USER_ROLES } from '../../../enum/user'
 import { FileController } from './file.controller'
+
 fs.ensureDirSync('./uploads/temp')
 const router = express.Router()
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './uploads/temp') // Temporary storage before encryption
+    cb(null, './uploads/temp') // Temporary storage before encryption and S3 upload
   },
   filename: (req, file, cb) => {
     // Create a safe filename
@@ -21,16 +22,45 @@ const storage = multer.diskStorage({
     cb(null, `${uniqueSuffix}${ext}`)
   },
 })
+const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
+  const allowedMimeTypes = [
+    // Images
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    // Documents
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+    'text/plain',
+    'text/csv',
+  ]
+
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true)
+  } else {
+    cb(
+      new Error(
+        'Invalid file type. Only images, PDFs, Office documents, and text files are allowed.',
+      ),
+      false,
+    )
+  }
+}
 
 // Create upload middleware
 const upload = multer({
   storage,
+  fileFilter,
   limits: {
-    fileSize: 40 * 1024 * 1024, // 40MB limit
+    fileSize: 100 * 1024 * 1024, // 100 MB limit
   },
 })
-
-// Ensure temp directory exists
 
 // Routes
 router.post(
