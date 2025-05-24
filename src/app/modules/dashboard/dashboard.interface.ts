@@ -36,6 +36,7 @@ export interface IChart {
   description: string
   data: IChartData[]
   type: string
+  footer: string
   createdAt: Date
   updatedAt: Date
 }
@@ -64,6 +65,9 @@ const chartSchema = new Schema<IChart>(
         value: Number,
       },
     ],
+    footer: {
+      type: String,
+    },
   },
   { timestamps: true },
 )

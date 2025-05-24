@@ -62,4 +62,8 @@ export default {
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   },
+  url: {
+    client: process.env.FRONTEND_URL1,
+    admin: process.env.FRONTEND_URL2,
+  },
 }

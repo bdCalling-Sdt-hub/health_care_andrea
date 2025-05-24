@@ -17,7 +17,12 @@ app.use(Morgan.errorHandler)
 //body parser
 app.use(
   cors({
-    origin: '*',
+    origin: [
+      'https://admin.hcfinconsults.com/',
+      'https://hcfinconsults.com/',
+      'http://admin.hcfinconsults.com/',
+      'http://hcfinconsults.com/',
+    ],
     credentials: true,
   }),
 )
