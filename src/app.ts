@@ -15,14 +15,22 @@ const app = express()
 app.use(Morgan.successHandler)
 app.use(Morgan.errorHandler)
 //body parser
+// app.use(
+//   cors({
+//     origin: [
+//       'https://admin.hcfinconsults.com/',
+//       'https://hcfinconsults.com/',
+//       'http://admin.hcfinconsults.com/',
+//       'http://hcfinconsults.com/',
+//       'http://www.admin.hcfinconsults.com/',
+//       'http://www.hcfinconsults.com/',
+//     ],
+//     credentials: true,
+//   }),
+// )
 app.use(
   cors({
-    origin: [
-      'https://admin.hcfinconsults.com/',
-      'https://hcfinconsults.com/',
-      'http://admin.hcfinconsults.com/',
-      'http://hcfinconsults.com/',
-    ],
+    origin: '*',
     credentials: true,
   }),
 )

@@ -9,7 +9,7 @@ export interface IMeetingDetails {
 }
 
 export interface IBookings {
-  user: Types.ObjectId
+  user?: Types.ObjectId
   firstName: string
   lastName?: string
   contact: string

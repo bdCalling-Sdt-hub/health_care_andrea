@@ -71,10 +71,21 @@ const deleteTab = catchAsync(async (req: Request, res: Response) => {
   })
 })
 
+const getAllTabsForSearch = catchAsync(async (req: Request, res: Response) => {
+  const result = await TabsServices.getAllTabsForSearch()
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Tabs retrieved successfully',
+    data: result,
+  })
+})
+
 export const TabsController = {
   createTab,
   updateTab,
   getSingleTab,
   getAllTabs,
   deleteTab,
+  getAllTabsForSearch,
 }

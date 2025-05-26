@@ -59,32 +59,31 @@ const getZoomToken = async () => {
 // Create a Zoom meeting
 export const createZoomMeeting = async (
   topic: string,
-  startTime: Date,
+  startTime: string,
   duration: number = 60,
   timezone: string = 'UTC',
 ) => {
   try {
     const token = await getZoomToken()
 
-    const formattedStartTime = startTime
-
     const response = await axios.post(
       `${ZOOM_API_BASE_URL}/users/me/meetings`,
       {
         topic,
         type: 2, // Scheduled meeting
-        start_time: formattedStartTime,
+        start_time: startTime, // Use the original ISO string with timezone
         duration,
-        timezone,
+        timezone: timezone || 'America/Los_Angeles', // Keep the timezone parameter
         settings: {
           host_video: true,
           participant_video: true,
-          join_before_host: false, // Changed to false to prevent joining before scheduled time
+          join_before_host: false,
           mute_upon_entry: true,
           auto_recording: 'none',
-          waiting_room: true, // Enable waiting room for additional control
-          meeting_authentication: true, // Require authentication
-          password: true, // Require password
+          waiting_room: true,
+          meeting_authentication: true,
+          password: true,
+          private_meeting: true,
           waiting_room_options: {
             enable: true,
             auto_admit: false,

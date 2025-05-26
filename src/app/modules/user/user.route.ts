@@ -36,11 +36,7 @@ router.get(
   auth(USER_ROLES.ADMIN, USER_ROLES.USER),
   UserController.getSchedule,
 )
-router.get(
-  '/schedule/:date',
-  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
-  UserController.getAvailableTime,
-)
+router.get('/schedule/:date', UserController.getAvailableTime)
 
 router.get('/all-users', auth(USER_ROLES.ADMIN), UserController.getAllUsers)
 export const UserRoutes = router

@@ -6,7 +6,7 @@ import { StatusCodes } from 'http-status-codes'
 
 const createBookings = catchAsync(async (req: Request, res: Response) => {
   const bookingsData = req.body
-  const result = await BookingsServices.createBookings(req.user!, bookingsData)
+  const result = await BookingsServices.createBookings(bookingsData)
 
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
@@ -35,7 +35,7 @@ const updateBookings = catchAsync(async (req: Request, res: Response) => {
 
 const getSingleBookings = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params
-  const result = await BookingsServices.getSingleBookings(id)
+  const result = await BookingsServices.getSingleBookings(req.user!, id)
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,

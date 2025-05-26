@@ -4,7 +4,7 @@ import { BOOKING_STATUS, PAYMENT_METHOD } from '../../../enum/booking'
 
 const BookingsSchema = new Schema<IBookings>(
   {
-    user: { type: Schema.Types.ObjectId },
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
     firstName: { type: String },
     lastName: { type: String },
     contact: { type: String },

@@ -18,6 +18,7 @@ export type PublicModel = Model<IPublic>
 
 export interface IPublicInformation {
   contact: string
+  contactDescription: string
   email: string
   facebook: string
   instagram: string

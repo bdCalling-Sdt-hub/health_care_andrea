@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const BookingsValidations = {
   create: z.object({
     body: z.object({
+      user: z.string().optional(),
       firstName: z.string(),
       lastName: z.string().optional(),
       contact: z.string(),
@@ -21,6 +22,7 @@ export const BookingsValidations = {
 
   update: z.object({
     body: z.object({
+      user: z.string().optional(),
       firstName: z.string().optional(),
       lastName: z.string().optional(),
       contact: z.string().optional(),

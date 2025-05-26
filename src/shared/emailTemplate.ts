@@ -133,49 +133,59 @@ const bookingConfirmation = (values: {
   const data = {
     to: values.email,
     subject: `Your Healthcare Consultation Booking Confirmation`,
-    html: `
-    <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
-      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
-        <tr>
-          <td align="center" style="padding: 40px 0;">
-            <img src="https://i.ibb.co/Zj6ZSsj/logo-8dc9b296.png" alt="Logo" style="width: 150px; height: auto;">
-          </td>
-        </tr>
-        <tr>
-          <td style="padding: 20px 40px;">
-            <h1 style="color: #032237; font-size: 24px; margin-bottom: 20px;">Booking Confirmation</h1>
-            <p style="color: #666666; font-size: 16px; line-height: 1.5;">Hello ${values.name},</p>
-            <p style="color: #666666; font-size: 16px; line-height: 1.5;">Your healthcare consultation has been confirmed for:</p>
-            
-            <div style="background-color: #f0f0f0; border-radius: 4px; padding: 20px; margin: 20px 0;">
-              <p style="margin: 5px 0; font-size: 16px;"><strong>Service:</strong> ${values.service}</p>
-              <p style="margin: 5px 0; font-size: 16px;"><strong>Date:</strong> ${values.date}</p>
-              <p style="margin: 5px 0; font-size: 16px;"><strong>Time:</strong> ${values.time}</p>
-            </div>
-            
-            <h2 style="color: #032237; font-size: 20px; margin: 25px 0 15px 0;">Zoom Meeting Details</h2>
-            <div style="background-color: #e6eaed; border-radius: 4px; padding: 20px; margin: 20px 0; border-left: 4px solid #032237;">
-              <p style="margin: 5px 0; font-size: 16px;"><strong>Meeting ID:</strong> ${values.meetingId}</p>
-              <p style="margin: 5px 0; font-size: 16px;"><strong>Password:</strong> ${values.meetingPassword}</p>
-              <a href="${values.meetingLink}" style="display: inline-block; margin-top: 15px; background-color: #032237; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold;">Join Meeting</a>
-            </div>
-            
-            <p style="color: #666666; font-size: 16px; line-height: 1.5;">Please join the meeting 5 minutes before the scheduled time. If you need to reschedule, please contact us as soon as possible.</p>
-            
-            <div style="margin-top: 30px; padding: 15px; background-color: #e6eaed; border-radius: 4px; border-left: 4px solid #032237;">
-              <p style="color: #666666; font-size: 14px; margin: 0;">
-                For any questions or assistance, please reply to this email or contact our support team.
-              </p>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding: 20px 40px; text-align: center; color: #999999; font-size: 14px; border-top: 1px solid #eeeeee;">
-            <p>&copy; ${new Date().getFullYear()} Healthcare Consultants. All rights reserved.</p>
-          </td>
-        </tr>
-      </table>
-    </body>
+    html: ` 
+    <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;"> 
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);"> 
+        <tr> 
+          <td align="center" style="padding: 40px 0;"> 
+            <img src="https://i.ibb.co/Zj6ZSsj/logo-8dc9b296.png" alt="Logo" style="width: 150px; height: auto;"> 
+          </td> 
+        </tr> 
+        <tr> 
+          <td style="padding: 20px 40px;"> 
+            <h1 style="color: #032237; font-size: 24px; margin-bottom: 20px;">Booking Confirmation</h1> 
+            <p style="color: #666666; font-size: 16px; line-height: 1.5;">Hello ${values.name},</p> 
+            <p style="color: #666666; font-size: 16px; line-height: 1.5;">Your healthcare consultation has been confirmed for:</p> 
+             
+            <div style="background-color: #f0f0f0; border-radius: 4px; padding: 20px; margin: 20px 0;"> 
+              <p style="margin: 5px 0; font-size: 16px;"><strong>Service:</strong> ${values.service}</p> 
+              <p style="margin: 5px 0; font-size: 16px;"><strong>Date:</strong> ${values.date}</p> 
+              <p style="margin: 5px 0; font-size: 16px;"><strong>Time:</strong> ${values.time}</p> 
+            </div> 
+             
+            <div> 
+            ${
+              values.meetingId !== undefined
+                ? ` 
+            <h2 style="color: #032237; font-size: 20px; margin: 25px 0 15px 0;">Zoom Meeting Details</h2> 
+            <div style="background-color: #e6eaed; border-radius: 4px; padding: 20px; margin: 20px 0; border-left: 4px solid #032237;"> 
+              <p style="margin: 5px 0; font-size: 16px;"><strong>Meeting ID:</strong> ${values.meetingId}</p> 
+              <p style="margin: 5px 0; font-size: 16px;"><strong>Password:</strong> ${values.meetingPassword}</p> 
+              <a href="${values.meetingLink}" style="display: inline-block; margin-top: 15px; background-color: #032237; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold;">Join Meeting</a> 
+            </div> 
+             
+            <p style="color: #666666; font-size: 16px; line-height: 1.5;">Please join the meeting 5 minutes before the scheduled time. If you need to reschedule, please contact us as soon as possible.</p> 
+             
+            `
+                : ''
+            } 
+            </div> 
+             
+ 
+            <div style="margin-top: 30px; padding: 15px; background-color: #e6eaed; border-radius: 4px; border-left: 4px solid #032237;"> 
+              <p style="color: #666666; font-size: 14px; margin: 0;"> 
+                For any questions or assistance, please reply to this email or contact our support team. 
+              </p> 
+            </div> 
+          </td> 
+        </tr> 
+        <tr> 
+          <td style="padding: 20px 40px; text-align: center; color: #999999; font-size: 14px; border-top: 1px solid #eeeeee;"> 
+            <p>&copy; ${new Date().getFullYear()} Healthcare Consultants. All rights reserved.</p> 
+          </td> 
+        </tr> 
+      </table> 
+    </body> 
   `,
   }
   return data

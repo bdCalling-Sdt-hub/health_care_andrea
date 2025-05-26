@@ -64,10 +64,16 @@ const getAllTabs = async (id: Types.ObjectId): Promise<ITabs[]> => {
   return result
 }
 
+const getAllTabsForSearch = async (): Promise<ITabs[]> => {
+  const result = await Tabs.find({}).lean()
+  return result
+}
+
 export const TabsServices = {
   createTab,
   updateTab,
   deleteTab,
   getSingleTab,
   getAllTabs,
+  getAllTabsForSearch,
 }

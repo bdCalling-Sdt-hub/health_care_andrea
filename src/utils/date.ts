@@ -117,6 +117,17 @@ export const convertSessionTimeToUTC = (
   }
 }
 
+// Add this new function to your date.ts file
+export const convertSessionTimeToLocalISO = (time: Date, timeZone: string) => {
+  // 1. Get the UTC time from MongoDB
+  const utcTime = DateTime.fromJSDate(time).toUTC()
+
+  // 2. Convert to specified timezone
+  const localTime = utcTime.setZone(timeZone)
+
+  // 3. Return ISO string for Zoom API
+  return localTime.toISO()
+}
 export const convertSessionTimeToLocal = (time: Date, timeZone: string) => {
   // 1. Get the UTC time from MongoDB
   const utcTime = DateTime.fromJSDate(time).toUTC()

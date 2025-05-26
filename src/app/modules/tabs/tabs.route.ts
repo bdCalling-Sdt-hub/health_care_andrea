@@ -15,6 +15,7 @@ router.post(
   validateRequest(TabValidation.createTabZodSchema),
   TabsController.createTab,
 )
+router.get('/all', TabsController.getAllTabsForSearch)
 router.get('/:id', TabsController.getSingleTab)
 router.patch(
   '/:id',
@@ -25,5 +26,4 @@ router.patch(
 )
 router.delete('/:id', TabsController.deleteTab)
 router.get('/service/:id', TabsController.getAllTabs)
-
 export const TabsRoutes = router

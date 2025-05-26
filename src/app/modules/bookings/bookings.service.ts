@@ -1,23 +1,24 @@
+import { PAYMENT_METHOD } from './../../../enum/booking'
 import { StatusCodes } from 'http-status-codes'
 import ApiError from '../../../errors/ApiError'
 import { IBookings } from './bookings.interface'
 import { Bookings } from './bookings.model'
 import {
   convertSessionTimeToLocal,
+  convertSessionTimeToLocalISO,
   convertSessionTimeToUTC,
 } from '../../../utils/date'
 import { Jwt, JwtPayload } from 'jsonwebtoken'
 import { sendNotification } from '../../../helpers/notificationHelper'
 import { User } from '../user/user.model'
 import { USER_ROLES } from '../../../enum/user'
-import { BOOKING_STATUS, PAYMENT_METHOD } from '../../../enum/booking'
+import { BOOKING_STATUS } from '../../../enum/booking'
 import { createZoomMeeting } from '../../../helpers/zoomHelper'
 import { Service } from '../service/service.model'
 import { emailHelper } from '../../../helpers/emailHelper'
 import { emailTemplate } from '../../../shared/emailTemplate'
 
 const createBookings = async (
-  user: JwtPayload,
   payload: IBookings & { time: string; date: string },
 ) => {
   const convertedSlotToUtc = convertSessionTimeToUTC(
@@ -27,7 +28,7 @@ const createBookings = async (
   )
 
   const convertedScheduleDate = new Date(convertedSlotToUtc.isoString)
-  payload.user = user.authId
+
   payload.scheduledAt = convertedScheduleDate
 
   const result = await Bookings.create(payload)
@@ -43,40 +44,33 @@ const createBookings = async (
   }
 
   try {
-    // Define the meeting topic with user details and the service
     const meetingTopic = `Healthcare Consultation: ${payload?.firstName || payload.lastName} - ${service?.title || 'General Consultation'}`
 
-    // Convert the scheduled time to the admin's local timezone
-    const adminLocalTime = convertSessionTimeToLocal(
+    const adminLocalTimeISO = convertSessionTimeToLocalISO(
       result.scheduledAt,
       admin?.timezone!,
     )
 
-    console.log(
-      adminLocalTime,
-      '🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧',
-      new Date(adminLocalTime),
-    )
+    let zoomMeeting: any = null
+    if (payload.paymentMethod === PAYMENT_METHOD.ONLINE) {
+      zoomMeeting = await createZoomMeeting(
+        meetingTopic,
+        adminLocalTimeISO!,
+        60,
+        admin?.timezone,
+      )
 
-    // Create the Zoom meeting using admin's local time (converted to UTC)
-    const zoomMeeting = await createZoomMeeting(
-      meetingTopic,
-      new Date(adminLocalTime),
-      60, // Duration in minutes
-      admin?.timezone,
-    )
-
-    // Save the Zoom meeting details in the booking
-    await Bookings.findByIdAndUpdate(result._id, {
-      link: zoomMeeting.joinUrl,
-      meetingDetails: {
-        meetingId: zoomMeeting.meetingId,
-        password: zoomMeeting.password,
-        joinUrl: zoomMeeting.joinUrl,
-        startUrl: zoomMeeting.startUrl,
-        meetingTime: zoomMeeting.meetingTime,
-      },
-    })
+      await Bookings.findByIdAndUpdate(result._id, {
+        link: zoomMeeting.joinUrl,
+        meetingDetails: {
+          meetingId: zoomMeeting.meetingId,
+          password: zoomMeeting.password,
+          joinUrl: zoomMeeting.joinUrl,
+          startUrl: zoomMeeting.startUrl,
+          meetingTime: zoomMeeting.meetingTime,
+        },
+      })
+    }
 
     // Send booking confirmation email with Zoom details
     const userLocalTime = convertSessionTimeToLocal(
@@ -104,9 +98,9 @@ const createBookings = async (
       date: bookingDate,
       time: bookingTime,
       service: service?.title || 'Healthcare Consultation',
-      meetingLink: zoomMeeting.joinUrl,
-      meetingPassword: zoomMeeting.password,
-      meetingId: zoomMeeting.meetingId,
+      meetingLink: zoomMeeting?.joinUrl,
+      meetingPassword: zoomMeeting?.password,
+      meetingId: zoomMeeting?.meetingId,
     })
 
     emailHelper.sendEmail(emailData)
@@ -115,12 +109,14 @@ const createBookings = async (
   }
 
   // Send notification to admin with local time for the admin
-  await sendNotification(
-    user.authId,
-    admin?._id as unknown as string,
-    'New Booking Request',
-    `Hello ${admin?.name}, you have a new meeting request at ${convertSessionTimeToLocal(result.scheduledAt, admin?.timezone!)}, please check your dashboard for more details.`,
-  )
+  if (payload.user) {
+    await sendNotification(
+      payload.user as unknown as string,
+      admin?._id as unknown as string,
+      'New Booking Request',
+      `Hello ${admin?.name}, you have a new meeting request at ${convertSessionTimeToLocal(result.scheduledAt, admin?.timezone!)}, please check your dashboard for more details.`,
+    )
+  }
 
   return result
 }
@@ -140,18 +136,23 @@ const getAllBookings = async (user: JwtPayload) => {
       convertSessionTimeToLocal(booking.scheduledAt, isUserExist.timezone),
     )
   })
-
   return result
 }
 
 const getUSerWiseBookings = async (user: JwtPayload) => {
-  const [result, isUserExist] = await Promise.all([
-    Bookings.find({}).populate('user', { name: 1, email: 1 }),
-    User.findById(user.authId),
-  ])
+  const isUserExist = await User.findById(user.authId)
   if (!isUserExist) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found')
   }
+
+  const query = {
+    $or: [{ user: isUserExist._id }, { email: isUserExist.email }],
+  }
+
+  const [result] = await Promise.all([
+    Bookings.find(query).populate('user', { name: 1, email: 1 }),
+  ])
+
   result.forEach(booking => {
     booking.scheduledAt = new Date(
       convertSessionTimeToLocal(booking.scheduledAt, isUserExist.timezone),
@@ -161,8 +162,24 @@ const getUSerWiseBookings = async (user: JwtPayload) => {
   return result
 }
 
-const getSingleBookings = async (id: string) => {
-  const result = await Bookings.findById(id)
+const getSingleBookings = async (user: JwtPayload, id: string) => {
+  const [result, isUserExist] = await Promise.all([
+    Bookings.findById(id).populate('user', { name: 1, email: 1 }),
+    User.findById(user.authId),
+  ])
+
+  if (!isUserExist) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      `You don't have permission to access this booking`,
+    )
+  }
+
+  if (result) {
+    result.scheduledAt = new Date(
+      convertSessionTimeToLocal(result?.scheduledAt, isUserExist.timezone),
+    )
+  }
   return result
 }
 
@@ -231,11 +248,13 @@ const updateBookings = async (
       admin?.timezone!,
     )
 
-    console.log(
-      adminLocalTime,
-      '🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧🕧',
-      new Date(adminLocalTime),
+    const adminLocalTimeISO = convertSessionTimeToLocalISO(
+      updatedBooking.scheduledAt,
+      admin?.timezone!,
     )
+
+    console.log(adminLocalTime, 'adminLocalTime')
+    console.log(adminLocalTimeISO, 'adminLocalTimeISO')
 
     userLocalTime = convertSessionTimeToLocal(
       convertedScheduleDate,
@@ -248,10 +267,15 @@ const updateBookings = async (
       try {
         const meetingTopic = `Healthcare Consultation: ${isBookingExist.firstName || isBookingExist.lastName} - ${isBookingExist.service?.title || 'General Consultation'}`
 
+        const adminLocalTimeISO = convertSessionTimeToLocalISO(
+          updatedBooking.scheduledAt,
+          admin?.timezone!,
+        )
+
         // Create a new Zoom meeting with updated time
         const zoomMeeting = await createZoomMeeting(
           meetingTopic,
-          new Date(convertedScheduleDate),
+          adminLocalTimeISO!,
           60, // 60 minutes duration
           isBookingExist.timezone,
         )

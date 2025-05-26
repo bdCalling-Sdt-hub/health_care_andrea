@@ -24,6 +24,9 @@ const PublicInformationSchema = new Schema<IPublicInformation>(
       type: String,
       required: true,
     },
+    contactDescription: {
+      type: String,
+    },
     email: {
       type: String,
       required: true,

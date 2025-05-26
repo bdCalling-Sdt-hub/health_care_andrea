@@ -2,7 +2,6 @@ import { StatusCodes } from 'http-status-codes'
 import ApiError from '../../../errors/ApiError'
 import { ISchedule, IUser } from './user.interface'
 import { Schedule, User } from './user.model'
-
 import { USER_ROLES, USER_STATUS } from '../../../enum/user'
 import { generateOtp } from '../../../utils/crypto'
 import { emailTemplate } from '../../../shared/emailTemplate'
@@ -16,6 +15,13 @@ import { Types } from 'mongoose'
 import { BOOKING_STATUS } from '../../../enum/booking'
 
 const createUser = async (payload: IUser): Promise<IUser | null> => {
+  if (payload.role === USER_ROLES.ADMIN) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Sorry you are not allowed to create admin account.',
+    )
+  }
+
   //check if user already exist
   payload.email = payload.email?.toLowerCase().trim()
   const isUserExist = await User.findOne({
@@ -173,11 +179,7 @@ const getSchedule = async (user: JwtPayload) => {
   return localTimeSchedule
 }
 
-const getAvailableTime = async (
-  user: JwtPayload,
-  date: string,
-  timezone: string,
-) => {
+const getAvailableTime = async (date: string, timezone: string) => {
   // Ensure date is in the correct format
   const selectedDate = DateTime.fromFormat(date, 'yyyy-MM-dd')
 
