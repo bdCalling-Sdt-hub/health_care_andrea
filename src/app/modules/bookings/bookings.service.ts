@@ -160,33 +160,14 @@ const getUSerWiseBookings = async (user: JwtPayload) => {
   }
 
   const [result] = await Promise.all([
-    Bookings.find(query)
-      .populate('user', { name: 1, email: 1 })
-      .populate('service', { title: 1 }),
+    Bookings.find(query).populate('user', { name: 1, email: 1 }),
   ])
 
-  const getUSerWiseBookings = async (user: JwtPayload) => {
-    const isUserExist = await User.findById(user.authId)
-    if (!isUserExist) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found')
-    }
-
-    const query = {
-      $or: [{ user: isUserExist._id }, { email: isUserExist.email }],
-    }
-
-    const [result] = await Promise.all([
-      Bookings.find(query).populate('user', { name: 1, email: 1 }),
-    ])
-
-    result.forEach(booking => {
-      booking.scheduledAt = new Date(
-        convertSessionTimeToLocal(booking.scheduledAt, isUserExist.timezone),
-      )
-    })
-
-    return result
-  }
+  result.forEach(booking => {
+    booking.scheduledAt = new Date(
+      convertSessionTimeToLocal(booking.scheduledAt, isUserExist.timezone),
+    )
+  })
 
   // Convert scheduledAt to local time string
   const formattedResult = result.map(booking => {
@@ -245,11 +226,11 @@ const updateBookings = async (
         path: 'service',
         select: { title: 1, image: 1 },
       }),
-    User.findOne({ role: USER_ROLES.ADMIN }),
+    User.findById(user.authId),
   ])
 
   if (!admin) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Admin not found')
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Admin data not found')
   }
   if (!isBookingExist)
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Booking not found')
@@ -278,6 +259,13 @@ const updateBookings = async (
     )
     const convertedScheduleDate = new Date(convertedSlotToUtc.isoString)
 
+    console.log(
+      convertSessionTimeToLocal,
+      'userLocalTime',
+      convertedSlotToUtc,
+      convertedScheduleDate,
+    )
+
     const updatedBooking = await Bookings.findByIdAndUpdate(
       id,
       { $set: { scheduledAt: convertedScheduleDate } },
@@ -289,26 +277,12 @@ const updateBookings = async (
     if (!updatedBooking) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update booking')
     }
-    // Convert the scheduled time to the admin's local timezone
-    const adminLocalTime = convertSessionTimeToLocal(
-      updatedBooking.scheduledAt,
-      admin?.timezone!,
-    )
 
-    const adminLocalTimeISO = convertSessionTimeToLocalISO(
-      updatedBooking.scheduledAt,
-      admin?.timezone!,
-    )
-
-    console.log(adminLocalTime, 'adminLocalTime')
-    console.log(adminLocalTimeISO, 'adminLocalTimeISO')
-
-    userLocalTime = convertSessionTimeToLocal(
-      convertedScheduleDate,
-      isBookingExist.timezone,
-    )
     notificationTitle = 'Booking Date & Time Changed'
-    notificationBody = `Booking date & time has been changed by ${isBookingExist.user}`
+    notificationBody = `Booking date & time has been changed by ${admin.name} to ${convertSessionTimeToLocal(
+      updatedBooking.scheduledAt,
+      updatedBooking.timezone,
+    )}`
 
     if (isBookingExist.meetingDetails?.meetingId) {
       try {
@@ -324,7 +298,7 @@ const updateBookings = async (
           meetingTopic,
           adminLocalTimeISO!,
           60, // 60 minutes duration
-          isBookingExist.timezone,
+          admin?.timezone,
         )
 
         // Update the meeting details in the payload
@@ -389,8 +363,8 @@ const updateBookings = async (
     payload.status === BOOKING_STATUS.ACCEPTED ||
     payload.status === BOOKING_STATUS.CANCELLED
   ) {
-    notificationTitle = `Booking has been ${payload.status} by ${payload.status === BOOKING_STATUS.ACCEPTED ? admin.name : isBookingExist.user.name}`
-    notificationBody = `Booking has been accepted by ${payload.status === BOOKING_STATUS.ACCEPTED ? admin.name : isBookingExist.user.name}`
+    notificationTitle = `Booking has been ${payload.status} by ${admin.name}`
+    notificationBody = `Booking has been ${payload.status} by ${admin.name}, please check your dashboard for more details.`
   }
   if (
     payload.paymentRequired &&

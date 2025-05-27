@@ -15,7 +15,7 @@ router.post(
 
 router.patch(
   '/:id',
-  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  auth(USER_ROLES.ADMIN),
   validateRequest(BookingsValidations.update),
   BookingsController.updateBookings,
 )
