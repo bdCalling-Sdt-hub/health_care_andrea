@@ -21,6 +21,7 @@ export interface IBookings {
   note: string
   message: string
   scheduledAt: Date
+  localScheduledAt: string
   timeCode: number
   status: string
   fee: number

@@ -123,20 +123,30 @@ const createBookings = async (
 
 const getAllBookings = async (user: JwtPayload) => {
   const [result, isUserExist] = await Promise.all([
-    Bookings.find({}).populate('user', { name: 1, email: 1 }),
+    Bookings.find({})
+      .populate('user', { name: 1, email: 1 })
+      .populate('service', { title: 1 }),
     User.findById(user.authId),
   ])
   if (!isUserExist) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found')
   }
 
-  //now convert the scheduledAt to local time
-  result.forEach(booking => {
-    booking.scheduledAt = new Date(
-      convertSessionTimeToLocal(booking.scheduledAt, isUserExist.timezone),
-    )
+  // Convert scheduledAt to local time string
+  const formattedResult = result.map(booking => {
+    // Convert the booking document to a plain JavaScript object
+    const bookingObj = booking.toObject()
+
+    // Replace the scheduledAt Date with a formatted string in admin's timezone
+    bookingObj.scheduledAt = convertSessionTimeToLocal(
+      booking.scheduledAt,
+      isUserExist.timezone,
+    ) as any
+
+    return bookingObj
   })
-  return result
+
+  return formattedResult
 }
 
 const getUSerWiseBookings = async (user: JwtPayload) => {
@@ -150,16 +160,47 @@ const getUSerWiseBookings = async (user: JwtPayload) => {
   }
 
   const [result] = await Promise.all([
-    Bookings.find(query).populate('user', { name: 1, email: 1 }),
+    Bookings.find(query)
+      .populate('user', { name: 1, email: 1 })
+      .populate('service', { title: 1 }),
   ])
 
-  result.forEach(booking => {
-    booking.scheduledAt = new Date(
-      convertSessionTimeToLocal(booking.scheduledAt, isUserExist.timezone),
-    )
+  const getUSerWiseBookings = async (user: JwtPayload) => {
+    const isUserExist = await User.findById(user.authId)
+    if (!isUserExist) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found')
+    }
+
+    const query = {
+      $or: [{ user: isUserExist._id }, { email: isUserExist.email }],
+    }
+
+    const [result] = await Promise.all([
+      Bookings.find(query).populate('user', { name: 1, email: 1 }),
+    ])
+
+    result.forEach(booking => {
+      booking.scheduledAt = new Date(
+        convertSessionTimeToLocal(booking.scheduledAt, isUserExist.timezone),
+      )
+    })
+
+    return result
+  }
+
+  // Convert scheduledAt to local time string
+  const formattedResult = result.map(booking => {
+    const bookingObj = booking.toObject()
+
+    bookingObj.scheduledAt = convertSessionTimeToLocal(
+      booking.scheduledAt,
+      isUserExist.timezone,
+    ) as any
+
+    return bookingObj
   })
 
-  return result
+  return formattedResult
 }
 
 const getSingleBookings = async (user: JwtPayload, id: string) => {
@@ -175,12 +216,18 @@ const getSingleBookings = async (user: JwtPayload, id: string) => {
     )
   }
 
-  if (result) {
-    result.scheduledAt = new Date(
-      convertSessionTimeToLocal(result?.scheduledAt, isUserExist.timezone),
-    )
-  }
-  return result
+  if (!result) return null
+
+  // Convert scheduledAt to local time string
+
+  const bookingObj = result.toObject()
+
+  bookingObj.scheduledAt = convertSessionTimeToLocal(
+    result.scheduledAt,
+    isUserExist.timezone,
+  ) as any
+
+  return bookingObj
 }
 
 const updateBookings = async (

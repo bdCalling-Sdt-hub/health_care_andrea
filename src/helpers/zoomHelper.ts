@@ -1,5 +1,6 @@
 import axios from 'axios'
 import config from '../config'
+import { DateTime } from 'luxon'
 
 // Base URL for Zoom API
 const ZOOM_API_BASE_URL = 'https://api.zoom.us/v2'
@@ -99,12 +100,19 @@ export const createZoomMeeting = async (
       },
     )
 
+    // Import the DateTime from luxon at the top of the file if not already imported
+    // import { DateTime } from 'luxon'
+
+    // Convert the UTC meeting time to the admin's timezone
+    const utcMeetingTime = DateTime.fromISO(response.data.start_time).toUTC()
+    const localMeetingTime = utcMeetingTime.setZone(timezone).toJSDate()
+
     return {
       meetingId: response.data.id,
       joinUrl: response.data.join_url,
       startUrl: response.data.start_url,
       password: response.data.password,
-      meetingTime: response.data.start_time,
+      meetingTime: localMeetingTime, // Store as a Date object in the admin's timezone
     }
   } catch (error) {
     console.error(
