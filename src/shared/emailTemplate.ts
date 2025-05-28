@@ -25,7 +25,7 @@ const createAccount = (values: ICreateAccount) => {
         </tr>
         <tr>
           <td style="padding: 20px 40px; text-align: center; color: #999999; font-size: 14px;">
-            <p>&copy; ${new Date().getFullYear()} Healthcare Consultants. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} All rights reserved by HC Financial Consultants.</p>
           </td>
         </tr>
       </table>
@@ -59,7 +59,7 @@ const resetPassword = (values: IResetPassword) => {
         </tr>
         <tr>
           <td style="padding: 20px 40px; text-align: center; color: #999999; font-size: 14px;">
-            <p>&copy; ${new Date().getFullYear()} Healthcare Consultants. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} All rights reserved by HC Financial Consultants.</p>
           </td>
         </tr>
       </table>
@@ -110,7 +110,7 @@ const resendOtp = (values: {
         </tr>
         <tr>
           <td style="padding: 20px 40px; text-align: center; color: #999999; font-size: 14px; border-top: 1px solid #eeeeee;">
-            <p>&copy; ${new Date().getFullYear()} Healthcare Consultants. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} All rights reserved by HC Financial Consultants.</p>
           </td>
         </tr>
       </table>
@@ -181,7 +181,7 @@ const bookingConfirmation = (values: {
         </tr> 
         <tr> 
           <td style="padding: 20px 40px; text-align: center; color: #999999; font-size: 14px; border-top: 1px solid #eeeeee;"> 
-            <p>&copy; ${new Date().getFullYear()} Healthcare Consultants. All rights reserved.</p> 
+            <p>&copy; ${new Date().getFullYear()} All rights reserved by HC Financial Consultants.</p> 
           </td> 
         </tr> 
       </table> 
@@ -242,7 +242,7 @@ const bookingRescheduled = (values: {
         </tr>
         <tr>
           <td style="padding: 20px 40px; text-align: center; color: #999999; font-size: 14px; border-top: 1px solid #eeeeee;">
-            <p>&copy; ${new Date().getFullYear()} Healthcare Consultants. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} All rights reserved by HC Financial Consultants.</p>
           </td>
         </tr>
       </table>
