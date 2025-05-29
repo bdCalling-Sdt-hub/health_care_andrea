@@ -24,6 +24,7 @@ export interface IBookings {
   localScheduledAt: string
   timeCode: number
   status: string
+  duration: number
   fee: number
   link: string
   time: string

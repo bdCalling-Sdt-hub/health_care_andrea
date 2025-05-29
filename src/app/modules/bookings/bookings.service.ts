@@ -13,7 +13,10 @@ import { sendNotification } from '../../../helpers/notificationHelper'
 import { User } from '../user/user.model'
 import { USER_ROLES } from '../../../enum/user'
 import { BOOKING_STATUS } from '../../../enum/booking'
-import { createZoomMeeting } from '../../../helpers/zoomHelper'
+import {
+  createZoomMeeting,
+  deleteZoomMeeting,
+} from '../../../helpers/zoomHelper'
 import { Service } from '../service/service.model'
 import { emailHelper } from '../../../helpers/emailHelper'
 import { emailTemplate } from '../../../shared/emailTemplate'
@@ -56,7 +59,7 @@ const createBookings = async (
       zoomMeeting = await createZoomMeeting(
         meetingTopic,
         adminLocalTimeISO!,
-        60,
+        payload.duration,
         admin?.timezone,
       )
 
@@ -259,13 +262,6 @@ const updateBookings = async (
     )
     const convertedScheduleDate = new Date(convertedSlotToUtc.isoString)
 
-    console.log(
-      convertSessionTimeToLocal,
-      'userLocalTime',
-      convertedSlotToUtc,
-      convertedScheduleDate,
-    )
-
     const updatedBooking = await Bookings.findByIdAndUpdate(
       id,
       { $set: { scheduledAt: convertedScheduleDate } },
@@ -297,7 +293,7 @@ const updateBookings = async (
         const zoomMeeting = await createZoomMeeting(
           meetingTopic,
           adminLocalTimeISO!,
-          60, // 60 minutes duration
+          payload.duration,
           admin?.timezone,
         )
 
@@ -351,7 +347,6 @@ const updateBookings = async (
         // Continue with booking update even if Zoom meeting update fails
       }
     }
-    return updatedBooking
   }
 
   if (payload.link) {
@@ -374,6 +369,8 @@ const updateBookings = async (
     notificationBody = `Please pay the amount of ${isBookingExist.fee} for booking that is scheduled at ${userLocalTime}`
   }
 
+  console.log(payload, '😒😒😒😒😒😒😒😒😒😒')
+
   const result = await Bookings.findByIdAndUpdate(
     id,
     { $set: payload },
@@ -381,6 +378,10 @@ const updateBookings = async (
       new: true,
     },
   )
+
+  if (isBookingExist?.meetingDetails?.meetingId) {
+    await deleteZoomMeeting(isBookingExist.meetingDetails.meetingId)
+  }
 
   //send notification to user
   await sendNotification(

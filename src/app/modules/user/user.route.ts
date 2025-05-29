@@ -4,10 +4,7 @@ import { UserValidations } from './user.validation'
 import validateRequest from '../../middleware/validateRequest'
 import auth from '../../middleware/auth'
 import { USER_ROLES } from '../../../enum/user'
-import {
-  fileAndBodyProcessor,
-  fileAndBodyProcessorUsingDiskStorage,
-} from '../../middleware/processReqBody'
+import { fileAndBodyProcessorUsingDiskStorage } from '../../middleware/processReqBody'
 
 const router = express.Router()
 

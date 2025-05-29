@@ -27,7 +27,7 @@ const getZoomToken = async () => {
 
     if (!accountId || !clientId || !clientSecret) {
       throw new Error(
-        'Missing Zoom API credentials. Please check your environment variables or config.',
+        'Something went wrong with the Zoom credentials, please contact HC Financial Consultants.',
       )
     }
 
@@ -74,6 +74,7 @@ export const createZoomMeeting = async (
         type: 2, // Scheduled meeting
         start_time: startTime, // Use the original ISO string with timezone
         duration,
+        push_change_to_calendar: true,
         timezone: timezone || 'America/Los_Angeles', // Keep the timezone parameter
         settings: {
           host_video: true,
@@ -100,9 +101,6 @@ export const createZoomMeeting = async (
       },
     )
 
-    // Import the DateTime from luxon at the top of the file if not already imported
-    // import { DateTime } from 'luxon'
-
     // Convert the UTC meeting time to the admin's timezone
     const utcMeetingTime = DateTime.fromISO(response.data.start_time).toUTC()
     const localMeetingTime = utcMeetingTime.setZone(timezone).toJSDate()
@@ -120,5 +118,29 @@ export const createZoomMeeting = async (
       (error as any).response?.data || error,
     )
     throw new Error('Failed to create Zoom meeting')
+  }
+}
+// Delete a Zoom meeting
+export const deleteZoomMeeting = async (meetingId: string | number) => {
+  try {
+    const token = await getZoomToken()
+
+    await axios.delete(`${ZOOM_API_BASE_URL}/meetings/${meetingId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      params: {
+        schedule_for_reminder: true, // Send cancellation email to registrants
+      },
+    })
+
+    return true
+  } catch (error) {
+    console.error(
+      'Error deleting Zoom meeting:',
+      (error as any).response?.data || error,
+    )
+    throw new Error('Failed to delete Zoom meeting')
   }
 }

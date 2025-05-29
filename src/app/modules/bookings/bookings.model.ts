@@ -30,6 +30,7 @@ const BookingsSchema = new Schema<IBookings>(
       ],
       default: BOOKING_STATUS.PENDING,
     },
+    duration: { type: Number, enum: [30, 45, 60] },
     link: { type: String },
     fee: { type: Number },
     paymentMethod: {
