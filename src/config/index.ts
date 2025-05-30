@@ -14,6 +14,10 @@ export default {
     client_secret: process.env.GOOGLE_CLIENT_SECRET,
     callback_url: process.env.GOOGLE_CALLBACK_URL,
   },
+  admin: {
+    admin_email: process.env.ADMIN_EMAIL,
+    admin_password: process.env.ADMIN_PASSWORD,
+  },
   aws: {
     access_key_id: process.env.AWS_ACCESS_KEY_ID,
     secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,

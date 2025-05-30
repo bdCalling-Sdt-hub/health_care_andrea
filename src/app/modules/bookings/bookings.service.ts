@@ -369,8 +369,6 @@ const updateBookings = async (
     notificationBody = `Please pay the amount of ${isBookingExist.fee} for booking that is scheduled at ${userLocalTime}`
   }
 
-  console.log(payload, '😒😒😒😒😒😒😒😒😒😒')
-
   const result = await Bookings.findByIdAndUpdate(
     id,
     { $set: payload },

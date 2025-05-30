@@ -13,6 +13,7 @@ import { DateTime } from 'luxon'
 import { Bookings } from '../bookings/bookings.model'
 import { Types } from 'mongoose'
 import { BOOKING_STATUS } from '../../../enum/booking'
+import config from '../../../config'
 
 const createUser = async (payload: IUser): Promise<IUser | null> => {
   if (payload.role === USER_ROLES.ADMIN) {
@@ -89,9 +90,9 @@ const updateProfile = async (user: JwtPayload, payload: Partial<IUser>) => {
 
 const createAdmin = async (): Promise<Partial<IUser> | null> => {
   const admin = {
-    email: 'hcf@gmail.com',
+    email: config.admin.admin_email,
     name: 'Andrea',
-    password: '12345678',
+    password: config.admin.admin_password,
     role: USER_ROLES.ADMIN,
     status: USER_STATUS.ACTIVE,
     verified: true,
