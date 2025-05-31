@@ -153,13 +153,14 @@ const createOrUpdatePageDescription = async (payload: IPageDescription) => {
       isExist._id,
       {
         $set: {
-          content: payload,
+          ...payload,
         },
       },
       {
         new: true,
       },
     )
+    return result
   } else {
     const result = await PageDescription.create(payload)
     if (!result)
