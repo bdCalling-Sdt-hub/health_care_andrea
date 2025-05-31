@@ -78,6 +78,28 @@ const getPublicInformation = catchAsync(async (req: Request, res: Response) => {
   })
 })
 
+const createOrUpdatePageDescription = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await PublicServices.createOrUpdatePageDescription(req.body)
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Page description updated successfully',
+      data: result,
+    })
+  },
+)
+
+const getPageDescription = catchAsync(async (req: Request, res: Response) => {
+  const result = await PublicServices.getPageDescription()
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Page description retrieved successfully',
+    data: result,
+  })
+})
+
 export const PublicController = {
   createPublic,
   getAllPublics,
@@ -85,4 +107,6 @@ export const PublicController = {
   createContact,
   createOrUpdatePublicInformation,
   getPublicInformation,
+  createOrUpdatePageDescription,
+  getPageDescription,
 }

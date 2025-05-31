@@ -26,6 +26,13 @@ router.post(
   auth(USER_ROLES.ADMIN),
   PublicController.createOrUpdatePublicInformation,
 )
+router.post(
+  '/page-description',
+  auth(USER_ROLES.ADMIN),
+  PublicController.createOrUpdatePageDescription,
+)
+
+router.get('/page-description/get', PublicController.getPageDescription)
 router.get('/information/get', PublicController.getPublicInformation)
 
 export const PublicRoutes = router

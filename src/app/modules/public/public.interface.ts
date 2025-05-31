@@ -16,6 +16,16 @@ export interface IContact {
 }
 export type PublicModel = Model<IPublic>
 
+export interface IPageDescription {
+  about: string
+  contactus: string
+  ourinsights: string
+  ourway: string
+  services: string
+}
+
+export type PageDescriptionModel = Model<IPageDescription>
+
 export interface IPublicInformation {
   contact: string
   contactDescription: string

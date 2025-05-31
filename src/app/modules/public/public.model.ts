@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose'
 import {
+  IPageDescription,
   IPublic,
   IPublicInformation,
   PublicInformationModel,
@@ -76,3 +77,36 @@ export const PublicInformation = model<
   IPublicInformation,
   PublicInformationModel
 >('PublicInformation', PublicInformationSchema)
+
+const pageDescriptionSchema = new Schema<IPageDescription>(
+  {
+    about: {
+      type: String,
+      required: true,
+    },
+    contactus: {
+      type: String,
+      required: true,
+    },
+    ourinsights: {
+      type: String,
+      required: true,
+    },
+    ourway: {
+      type: String,
+      required: true,
+    },
+    services: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  },
+)
+
+export const PageDescription = model<IPageDescription>(
+  'PageDescription',
+  pageDescriptionSchema,
+)

@@ -1,7 +1,12 @@
 import { StatusCodes } from 'http-status-codes'
 import ApiError from '../../../errors/ApiError'
-import { IContact, IPublic, IPublicInformation } from './public.interface'
-import { Public, PublicInformation } from './public.model'
+import {
+  IContact,
+  IPageDescription,
+  IPublic,
+  IPublicInformation,
+} from './public.interface'
+import { PageDescription, Public, PublicInformation } from './public.model'
 
 import { User } from '../user/user.model'
 import { emailHelper } from '../../../helpers/emailHelper'
@@ -141,6 +146,36 @@ const getPublicInformation = async () => {
   return result
 }
 
+const createOrUpdatePageDescription = async (payload: IPageDescription) => {
+  const isExist = await PageDescription.findOne({})
+  if (isExist) {
+    const result = await PageDescription.findByIdAndUpdate(
+      isExist._id,
+      {
+        $set: {
+          content: payload,
+        },
+      },
+      {
+        new: true,
+      },
+    )
+  } else {
+    const result = await PageDescription.create(payload)
+    if (!result)
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        'Failed to create Page Description',
+      )
+    return result
+  }
+}
+
+const getPageDescription = async () => {
+  const result = await PageDescription.findOne({}).lean()
+  return result
+}
+
 export const PublicServices = {
   createPublic,
   getAllPublics,
@@ -148,4 +183,6 @@ export const PublicServices = {
   createContact,
   createOrUpdatePublicInformation,
   getPublicInformation,
+  createOrUpdatePageDescription,
+  getPageDescription,
 }
