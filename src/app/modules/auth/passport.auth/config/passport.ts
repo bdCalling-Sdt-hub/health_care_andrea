@@ -7,6 +7,8 @@ import { PassportAuthServices } from '../passport.auth.service'
 import { AuthHelper } from '../../auth.helper'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import config from '../../../../../config'
+import { StatusCodes } from 'http-status-codes'
+import ApiError from '../../../../../errors/ApiError'
 
 passport.use(
   new LocalStrategy(
@@ -26,9 +28,10 @@ passport.use(
           .lean()
 
         if (!isUserExist) {
-          return done(null, false, {
-            message: 'No user found with this email.',
-          })
+          throw new ApiError(
+            StatusCodes.NOT_FOUND,
+            'No account found with this email, please sign up first.',
+          )
         }
 
         return done(null, {
